@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">Maxys Inventory</string>
+    <string name="toggleOn">Bom estado</string>
+    <string name="toggleOff">Avariado</string>
+    <string name="lblQuantidade">Qtde:</string>
+    <string name="btnEnviar">Enviar informação</string>
+    <string name="autoBarCode">Auto\nLeitura</string>
+    <string name="title_activity_login">Maxys Inventory</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Senha</string>
+    <string name="action_sign_in">Logar</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">Este endereço de e-mail é inválido</string>
+    <string name="error_invalid_password">Esta senha é muito curta</string>
+    <string name="error_incorrect_password">A senha está incorreta</string>
+    <string name="error_field_required">Este campo é obrigatório</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="support_email">suporte.inventory@maxys.com</string>
+    <string name="app_version">Versão: 0.0.1</string>
+    <string name="app_date">Data: 15/02/2019</string>
+    <string name="textLogin">Login</string>
+    <string name="textPassword">Senha</string>
+    <string name="textLogar">Entrar</string>
+    <string name="app_rigths">Todos os direitos reservados Maxys ©</string>
+    <string name="textLogo">Logo</string>
+    <string name="textNome">Nome</string>
+    <string name="btnCriarConta">Criar Conta</string>
+    <string name="btnCadastrar">Cadastre-se</string>
+    <string name="textEmpresa">Empresa</string>
+    <string name="textContribuidor">Contribuidor</string>
+</resources>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".EmpresaActivity">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/imgEmpresa"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/textEmpresa"
+            android:scaleType="centerCrop"
+            app:srcCompat="@android:drawable/ic_menu_gallery" />
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/textLayoutCreateEmpresa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginLeft="24dp"
+            android:layout_marginTop="50dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginRight="24dp"
+            android:layout_marginBottom="2dp"
+            tools:ignore="MissingConstraints">
+
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/edtEmpresa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/textEmpresa"
+                android:inputType="text" />
+
+        </android.support.design.widget.TextInputLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/textLayoutCreateContribuidor"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            tools:ignore="MissingConstraints">
+
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/edtContribuidor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/textContribuidor"
+                android:inputType="text" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <ImageButton
+            android:id="@+id/btnAddContribuidor"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            app:srcCompat="@android:drawable/ic_menu_add" />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>
