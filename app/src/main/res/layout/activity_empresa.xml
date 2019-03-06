@@ -27,7 +27,7 @@
             android:scaleType="centerCrop"
             app:srcCompat="@android:drawable/ic_menu_gallery" />
 
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ti_empresa_nome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -38,14 +38,14 @@
             android:layout_marginBottom="8dp"
             tools:ignore="MissingConstraints">
 
-            <android.support.v7.widget.AppCompatEditText
+            <androidx.appcompat.widget.AppCompatEditText
                 android:id="@+id/et_empresa_nome"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/textEmpresa"
                 android:inputType="text" />
 
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
     <LinearLayout

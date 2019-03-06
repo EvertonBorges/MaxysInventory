@@ -28,3 +28,7 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+project.ext{
+    kotlin_version = '1.3.21'
+}

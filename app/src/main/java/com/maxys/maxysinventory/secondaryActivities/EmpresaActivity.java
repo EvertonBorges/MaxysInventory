@@ -1,11 +1,11 @@
 package com.maxys.maxysinventory.secondaryActivities;
 
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.design.widget.TextInputLayout;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import com.google.android.material.textfield.TextInputLayout;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.AppCompatEditText;
+import androidx.appcompat.widget.AppCompatEditText;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;

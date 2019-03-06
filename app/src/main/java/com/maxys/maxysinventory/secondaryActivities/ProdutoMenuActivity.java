@@ -3,9 +3,10 @@ package com.maxys.maxysinventory.secondaryActivities;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -22,6 +23,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 
+import androidx.fragment.app.FragmentActivity;
 import droidninja.filepicker.FilePickerBuilder;
 import droidninja.filepicker.FilePickerConst;
 import droidninja.filepicker.models.sort.SortingTypes;
@@ -76,26 +78,16 @@ public class ProdutoMenuActivity extends AppCompatActivity {
         boolean permitido = Permissao.validaPermissao(1,this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE});
 
         if (permitido) {
-            FilePickerBuilder.Companion.getInstance().setMaxCount(1)
-                                                     .setActivityTheme(R.style.AppTheme)
-                                                     .setActivityTitle("Selecione o arquivo")
-                                                     .addFileSupport("TXT", new String[] {".txt"}, R.drawable.ic_insert_drive_file)
-                                                     .enableDocSupport(false)
-                                                     .enableSelectAll(false)
-                                                     .sortDocumentsBy(SortingTypes.name)
-                                                     .withOrientation(Orientation.PORTRAIT_ONLY)
-                                                     .pickFile(this);
-
-
-            /*
-            new MaterialFilePicker()
-                    .withActivity(ProdutoMenuActivity.this)
-                    .withRequestCode(TipoRetornoIntent.FILE_SEARCH.ordinal())
-                    .withFilter(Pattern.compile(".*\\.txt$")) // Filtering files and directories by file name using regex
-                    //.withFilterDirectories(true) // Set directories filterable (false by default)
-                    //.withHiddenFiles(true) // Show hidden files and folders
-                    .start();
-            */
+             FilePickerBuilder.Companion.getInstance()
+                                        .setMaxCount(1)
+                                        .setActivityTheme(R.style.LibAppTheme)
+                                        .setActivityTitle("Selecione o arquivo")
+                                        .addFileSupport("TXT", new String[] {".txt"}, R.drawable.ic_insert_drive_file)
+                                        .enableDocSupport(false)
+                                        .enableSelectAll(false)
+                                        .sortDocumentsBy(SortingTypes.name)
+                                        .withOrientation(Orientation.PORTRAIT_ONLY)
+                                        .pickFile(this, TipoRetornoIntent.FILE_SEARCH.ordinal());
         } else {
             Util.AlertaInfo(ProdutoMenuActivity.this, "Permissão arquivos", "É necessária permitir o acesso aos diretórios e arquivos do dispositivo.");
         }
@@ -114,6 +106,11 @@ public class ProdutoMenuActivity extends AppCompatActivity {
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void onOpenFragmentClicked(View view) {
+        Intent intent = new Intent(this, FragmentActivity.class);
+        startActivity(intent);
     }
 
 }

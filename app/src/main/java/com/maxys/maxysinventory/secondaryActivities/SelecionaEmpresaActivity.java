@@ -2,8 +2,8 @@ package com.maxys.maxysinventory.secondaryActivities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
@@ -79,8 +79,6 @@ public class SelecionaEmpresaActivity extends AppCompatActivity {
         });
 
         lvEmpresas.setOnItemClickListener((parent, view, position, id) -> {
-            Toast.makeText(SelecionaEmpresaActivity.this, "Apertando na listview.", Toast.LENGTH_LONG).show();
-
             Empresa empresa = empresas.get(position);
 
             abrirProximaTela(empresa);

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".secondaryActivities.ManageProdutoActivity">
 
-    <android.support.design.widget.TextInputLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/ti_manage_produto_descricao"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,16 +18,16 @@
         android:layout_alignParentTop="true"
         tools:ignore="MissingConstraints">
 
-        <android.support.v7.widget.AppCompatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/et_manage_produto_descricao"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/txtProdutoDescricao"
             android:inputType="text" />
 
-    </android.support.design.widget.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <android.support.design.widget.TextInputLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/ti_manage_produto_cod_ref"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,14 +38,14 @@
         android:layout_below="@+id/ti_manage_produto_descricao"
         tools:ignore="MissingConstraints">
 
-        <android.support.v7.widget.AppCompatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/et_manage_produto_cod_ref"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/txtProdutoCodRef"
             android:inputType="number" />
 
-    </android.support.design.widget.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <ImageButton
         android:id="@+id/btn_manage_produto_barcode"
