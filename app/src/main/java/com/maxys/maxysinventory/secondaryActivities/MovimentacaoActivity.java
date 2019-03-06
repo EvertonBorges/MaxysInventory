@@ -29,14 +29,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Movimentacao;
 import com.maxys.maxysinventory.model.Produto;
-import com.maxys.maxysinventory.model.MovimentacaoAdapter;
 import com.maxys.maxysinventory.model.TipoRetornoIntent;
 import com.maxys.maxysinventory.util.Permissao;
 import com.maxys.maxysinventory.util.Util;
@@ -70,7 +68,7 @@ public class MovimentacaoActivity extends AppCompatActivity {
 
     private HashMap<String, Produto> produtos = new HashMap<>();
     private List<Produto> produtosFiltro = new ArrayList<>();
-    private MovimentacaoAdapter adapterProdutos;
+    //private MovimentacaoAdapter adapterProdutos;
 
     public static ProgressDialog progressDialog;
     private static Handler handler;
@@ -159,7 +157,7 @@ public class MovimentacaoActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 updateFilteredData();
-                Collections.sort(produtosFiltro);
+                //Collections.sort(produtosFiltro);
             }
         });
 
@@ -326,10 +324,10 @@ public class MovimentacaoActivity extends AppCompatActivity {
                 }
 
                 updateFilteredData();
-                Collections.sort(produtosFiltro);
+                //Collections.sort(produtosFiltro);
 
-                adapterProdutos = new MovimentacaoAdapter(produtosFiltro);
-                rcvInventario.setAdapter(adapterProdutos);
+                //adapterProdutos = new MovimentacaoAdapter(produtosFiltro);
+                //rcvInventario.setAdapter(adapterProdutos);
             }
 
             @Override

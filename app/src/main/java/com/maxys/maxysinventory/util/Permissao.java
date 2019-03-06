@@ -31,6 +31,8 @@ public class Permissao {
             // Solicita permissão
             ActivityCompat.requestPermissions(activity, novasPermissoes, requestCode);
 
+
+
         }
         return true;
     }

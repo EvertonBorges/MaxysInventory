@@ -62,7 +62,7 @@ public class EmpresaAdapter extends ArrayAdapter<Empresa> {
                 });
 
                 @SuppressLint("SimpleDateFormat")
-                SimpleDateFormat formatador = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+                SimpleDateFormat formatador = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
                 data.setText(formatador.format(empresa.getDataHora().getTime()));
                 nome.setText(empresa.getNome());

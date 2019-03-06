@@ -22,7 +22,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/recycle_produto_lbl_cod_referencia"
+                android:id="@+id/tv_item_produto_cod_ref"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
@@ -33,32 +33,37 @@
                 android:textSize="14sp" />
 
             <TextView
-                android:id="@+id/recycle_produto_lbl_descricao"
+                android:id="@+id/tv_item_produto_descricao"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:layout_weight="1"
                 android:maxLines="2"
                 android:minLines="1"
-                android:text="BLUSA AZUL"
+                android:text="BLUSA AZUL LISTRADA P"
                 android:textColor="@android:color/black"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
         </LinearLayout>
 
         <ImageButton
-            android:id="@+id/recycle_produto_btn_editar"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_margin="8dp"
+            android:id="@+id/ib_item_produto_editar"
+            android:layout_width="45dp"
+            android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="0"
+            android:background="@android:drawable/screen_background_light_transparent"
+            android:padding="5dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_action_edit" />
 
         <ImageButton
-            android:id="@+id/recycle_produto_btn_remover"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_margin="8dp"
+            android:id="@+id/ib_item_produto_remover"
+            android:layout_width="45dp"
+            android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="0"
+            android:background="@android:drawable/screen_background_light_transparent"
+            android:padding="5dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_delete" />
     </LinearLayout>

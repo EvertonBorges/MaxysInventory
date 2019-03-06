@@ -11,6 +11,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
@@ -60,13 +61,16 @@ public class ContribuidorAdapter extends ArrayAdapter<Contribuidor> {
                 String idUsuarioLogado = preferencias.getIdentificador();
 
                 ibRemover.setOnClickListener(v -> {
-                    AlertDialog alerta = Util.AlertaInfo(context, "Remover Contribuidor", "Deseja realmente remover o contribuidor " + contribuidor.getNome() + "?");
-                    alerta.setButton(DialogInterface.BUTTON_POSITIVE, "Sim", (dialog, which) -> {
+                    AlertDialog.Builder alert = new AlertDialog.Builder(context);
+                    alert.setTitle("REMOVER CONTRIBUIDOR");
+                    alert.setMessage("Deseja realmente remover o contribuidor " + contribuidor.getNome() + "?");
+                    alert.setCancelable(true);
+                    alert.setPositiveButton("Sim", (dialog, which) -> {
                         DatabaseReference databaseReference = ConfiguracaoFirebase.getFirebase();
                         databaseReference.child("empresa_contribuidores")
-                                         .child(idEmpresa)
-                                         .child(Base64Custom.codificarBase64(contribuidor.getEmail()))
-                                         .removeValue().addOnCompleteListener(task -> {
+                                .child(idEmpresa)
+                                .child(Base64Custom.codificarBase64(contribuidor.getEmail()))
+                                .removeValue().addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 Toast.makeText(context, "Contribuidor removido da empresa com sucesso!", Toast.LENGTH_LONG).show();
 
@@ -95,8 +99,8 @@ public class ContribuidorAdapter extends ArrayAdapter<Contribuidor> {
 
                         dialog.dismiss();
                     });
-
-                    alerta.setButton(DialogInterface.BUTTON_NEGATIVE, "Não", (dialog, which) -> dialog.dismiss());
+                    alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
+                    alert.show();
                 });
             }
         }

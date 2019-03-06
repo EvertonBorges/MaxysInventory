@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,7 +7,7 @@
     tools:context=".secondaryActivities.ManageProdutoActivity">
 
     <android.support.design.widget.TextInputLayout
-        android:id="@+id/layout_txt_manage_produto_descricao"
+        android:id="@+id/ti_manage_produto_descricao"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -15,40 +15,35 @@
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
         android:layout_marginRight="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:passwordToggleEnabled="true"
+        android:layout_alignParentTop="true"
         tools:ignore="MissingConstraints">
 
         <android.support.v7.widget.AppCompatEditText
-            android:id="@+id/txt_manage_produto_descricao"
+            android:id="@+id/et_manage_produto_descricao"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/txtProdutoDescricao"
-            android:inputType="textEmailAddress" />
+            android:inputType="text" />
 
     </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
-        android:id="@+id/layout_txt_manage_produto_cod_ref"
+        android:id="@+id/ti_manage_produto_cod_ref"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginLeft="24dp"
         android:layout_marginTop="16dp"
         android:minWidth="150dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layout_txt_manage_produto_descricao"
-        app:passwordToggleEnabled="true"
+        android:layout_below="@+id/ti_manage_produto_descricao"
         tools:ignore="MissingConstraints">
 
         <android.support.v7.widget.AppCompatEditText
-            android:id="@+id/txt_manage_produto_cod_ref"
+            android:id="@+id/et_manage_produto_cod_ref"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/txtProdutoCodRef"
-            android:inputType="textEmailAddress" />
+            android:inputType="number" />
 
     </android.support.design.widget.TextInputLayout>
 
@@ -58,68 +53,63 @@
         android:layout_height="60dp"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:background="@drawable/barcode01"
-        app:layout_constraintStart_toEndOf="@+id/layout_txt_manage_produto_cod_ref"
-        app:layout_constraintTop_toTopOf="@+id/layout_txt_manage_produto_cod_ref" />
+        android:background="@android:drawable/screen_background_light_transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_action_barcode_1"
+        android:layout_toEndOf="@id/ti_manage_produto_cod_ref"
+        android:layout_toRightOf="@id/ti_manage_produto_cod_ref"
+        android:layout_alignBottom="@id/ti_manage_produto_cod_ref"/>
 
     <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="0dp"
+        android:id="@+id/ll_5"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="24dp"
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingLeft="24dp"
         android:paddingRight="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layout_txt_manage_produto_cod_ref">
-
-        <ImageButton
-            android:id="@+id/btn_manage_produto_novo"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_weight="0"
-            app:srcCompat="@android:drawable/ic_menu_add" />
+        android:layout_below="@+id/ti_manage_produto_cod_ref">
 
         <ImageButton
             android:id="@+id/btn_manage_produto_limpar"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:layout_weight="0"
-            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+            android:background="@android:drawable/screen_background_light_transparent"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_clear" />
 
         <ImageButton
             android:id="@+id/btn_manage_produto_salvar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:layout_weight="0"
-            app:srcCompat="@android:drawable/ic_menu_save" />
+            android:background="@android:drawable/screen_background_light_transparent"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_action_save" />
     </LinearLayout>
 
     <View
         android:id="@+id/divider4"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
         android:background="@color/primary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+        android:layout_below="@+id/ll_5" />
 
-    <android.support.v7.widget.RecyclerView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+    <ListView
+        android:id="@+id/lv_manage_produto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_margin="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider4" />
+        android:layout_below="@+id/divider4"
+        android:divider="@color/primary"
+        android:dividerHeight="1dp"
+        android:layout_alignParentBottom="true"/>
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>

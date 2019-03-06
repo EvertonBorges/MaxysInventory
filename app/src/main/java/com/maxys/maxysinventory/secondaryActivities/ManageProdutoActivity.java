@@ -2,52 +2,110 @@ package com.maxys.maxysinventory.secondaryActivities;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatEditText;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.maxys.maxysinventory.R;
+import com.maxys.maxysinventory.adapter.ProdutoAdapter;
+import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
+import com.maxys.maxysinventory.model.Empresa;
+import com.maxys.maxysinventory.model.LogAcoes;
 import com.maxys.maxysinventory.model.Usuario;
 import com.maxys.maxysinventory.model.Produto;
 import com.maxys.maxysinventory.model.TipoRetornoIntent;
 import com.maxys.maxysinventory.util.Permissao;
+import com.maxys.maxysinventory.util.Preferencias;
 import com.maxys.maxysinventory.util.Util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class ManageProdutoActivity extends AppCompatActivity {
 
-    private Usuario contribuidor;
-    private List<Produto> produtos;
+    private TextInputLayout textLayoutCodReferencia;
+    private TextInputLayout textLayoutDescricao;
 
-    private EditText edtCodReferencia;
-    private EditText edtDescricao;
+    private AppCompatEditText edtCodReferencia;
+    private AppCompatEditText edtDescricao;
+
+    private DatabaseReference databaseReference;
+
+    private Empresa empresa;
+    private String idUsuarioLogado;
 
     private String[] permissoesNecessarias = new String[] { Manifest.permission.INTERNET };
+
+    private ArrayAdapter adapter;
+    private List<Produto> produtos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_produto);
 
-        contribuidor = (Usuario) getIntent().getSerializableExtra("contribuidor");
+        produtos = new ArrayList<>();
 
-        edtCodReferencia = findViewById(R.id.txt_manage_produto_cod_ref);
-        edtDescricao = findViewById(R.id.txt_manage_produto_descricao);
+        Permissao.validaPermissao(1,this, permissoesNecessarias);
 
-        edtCodReferencia.setEnabled(false);
-        edtDescricao.setEnabled(false);
+        Preferencias preferencias = new Preferencias(ManageProdutoActivity.this);
+        idUsuarioLogado = preferencias.getIdentificador();
+        empresa = (Empresa) getIntent().getSerializableExtra("empresa");
+
+        edtCodReferencia = findViewById(R.id.et_manage_produto_cod_ref);
+        edtDescricao = findViewById(R.id.et_manage_produto_descricao);
 
         ImageButton btnBarcode = findViewById(R.id.btn_manage_produto_barcode);
         ImageButton btnLimpar = findViewById(R.id.btn_manage_produto_limpar);
         ImageButton btnSalvar = findViewById(R.id.btn_manage_produto_salvar);
+
+        ListView lvProdutos = findViewById(R.id.lv_manage_produto);
+        adapter = new ProdutoAdapter(ManageProdutoActivity.this, produtos, empresa.getId());
+        lvProdutos.setAdapter(adapter);
+
+        databaseReference = ConfiguracaoFirebase.getFirebase();
+
+        databaseReference.child("empresa_produtos")
+                         .child(empresa.getId())
+                         .addValueEventListener(new ValueEventListener() {
+                             @Override
+                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                 produtos.clear();
+
+                                 if (dataSnapshot.getValue() != null) {
+                                     for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                         Produto produto = snapshot.getValue(Produto.class);
+                                         produtos.add(produto);
+                                     }
+                                 }
+
+                                 adapter.notifyDataSetChanged();
+                             }
+
+                             @Override
+                             public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                             }
+                         });
 
         btnBarcode.setOnClickListener(v -> {
             boolean permitido = Permissao.validaPermissao(1,this, new String[] { Manifest.permission.CAMERA });
@@ -65,14 +123,76 @@ public class ManageProdutoActivity extends AppCompatActivity {
         });
 
         btnLimpar.setOnClickListener(v -> {
-
+            limparCampos();
         });
 
         btnSalvar.setOnClickListener(v -> {
+            Produto produto = new Produto();
+            produto.setCodReferencia(edtCodReferencia.getText().toString());
+            produto.setDescricao(edtDescricao.getText().toString());
 
+            if (produto.getCodReferencia().isEmpty()) {
+                Util.AlertaInfo(ManageProdutoActivity.this, "ERRO CÓD. REF.", "Insira o cód de referência do produto.");
+            } else if (produto.getDescricao().isEmpty()) {
+                Util.AlertaInfo(ManageProdutoActivity.this, "ERRO DESCRIÇÃO.", "Insira a descrição do produto.");
+            } else if (produto.getCodReferencia().length() < 8) {
+                Util.AlertaInfo(ManageProdutoActivity.this, "ERRO CÓD. REF.", "Cód. de referência de possuir pelo menos 8 números");
+            } else {
+                DatabaseReference databaseReference = ConfiguracaoFirebase.getFirebase();
+                databaseReference.child("empresa_produtos")
+                                 .child(empresa.getId())
+                                 .orderByChild("codReferencia")
+                                 .equalTo(produto.getCodReferencia())
+                                 .limitToFirst(1)
+                                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                                     @Override
+                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                         if (dataSnapshot.getValue() != null) {
+                                             AlertDialog.Builder alert = new AlertDialog.Builder(ManageProdutoActivity.this);
+                                             alert.setTitle("ALTERAR PRODUTO");
+                                             alert.setMessage("Deseja realmente alterar o produto?");
+                                             alert.setCancelable(true);
+                                             alert.setPositiveButton("Sim", (dialog, which) -> {
+                                                 for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                                     snapshot.getRef()
+                                                             .setValue(produto)
+                                                             .addOnCompleteListener(task -> {
+                                                                 if (task.isSuccessful()) {
+                                                                     Util.AlertaInfo(ManageProdutoActivity.this, "PRODUTO ALTERADO", "Produto alterado com sucesso.");
+                                                                     Util.salvarLog(empresa.getId(), idUsuarioLogado, "Produto (" + snapshot.getKey() + ") alterado com sucesso.");
+                                                                     limparCampos();
+                                                                     dialog.dismiss();
+                                                                 } else {
+                                                                     Util.AlertaInfo(ManageProdutoActivity.this, "ERRO PRODUTO", "Erro ao alterar o produto.");
+                                                                     dialog.dismiss();
+                                                                 }
+                                                             });
+                                                 }
+                                             });
+                                             alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
+                                             alert.show();
+                                         } else {
+                                             databaseReference.child("empresa_produtos")
+                                                              .child(empresa.getId())
+                                                              .push().setValue(produto).addOnCompleteListener(command -> {
+                                                                  if (command.isSuccessful()) {
+                                                                      Util.AlertaInfo(ManageProdutoActivity.this, "PRODUTO CADASTRADO", "Produto cadastrado com sucesso.");
+                                                                      Util.salvarLog(empresa.getId(), idUsuarioLogado, "Produto (" + produto.getCodReferencia() + ") cadastrado com sucesso.");
+                                                                      limparCampos();
+                                                                  } else {
+                                                                      Util.AlertaInfo(ManageProdutoActivity.this, "ERRO PRODUTO", "Erro ao cadastrar o produto.");
+                                                                  }
+                                             });
+                                         }
+                                     }
 
+                                     @Override
+                                     public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                     }
+                                 });
+            }
         });
-
     }
 
     @Override
@@ -104,4 +224,10 @@ public class ManageProdutoActivity extends AppCompatActivity {
 
         super.onActivityResult(requestCode, resultCode, data);
     }
+
+    private void limparCampos() {
+        edtCodReferencia.setText("");
+        edtDescricao.setText("");
+    }
+
 }

@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.net.Uri;
 
 import com.maxys.maxysinventory.R;
+import com.maxys.maxysinventory.model.LogAcoes;
 import com.maxys.maxysinventory.model.Movimentacao;
 
 import java.io.BufferedReader;
@@ -92,6 +93,16 @@ public class Util {
         }
 
         return linhas;
+    }
+
+    public static void salvarLog(String idEmpresa, String idUsuarioLogado, String descricao) {
+        LogAcoes logAcoes = new LogAcoes();
+        logAcoes.setIdEmpresa(idEmpresa);
+        logAcoes.setIdUsuario(idUsuarioLogado);
+        logAcoes.setDescricao(descricao);
+        logAcoes.salvarLog();
+
+        logAcoes = null;
     }
 
 }
