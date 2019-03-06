@@ -19,10 +19,10 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
-    <string name="support_email">suporte.inventory@maxys.com</string>
+    <string name="support_email">suporte@maxys.com.br</string>
     <string name="app_version">Versão: 0.0.1</string>
     <string name="app_date">Data: 15/02/2019</string>
-    <string name="textLogin">Login</string>
+    <string name="textLogin">E-mail</string>
     <string name="textPassword">Senha</string>
     <string name="textLogar">Entrar</string>
     <string name="app_rigths">Todos os direitos reservados Maxys ©</string>
@@ -32,4 +32,17 @@
     <string name="btnCadastrar">Cadastre-se</string>
     <string name="textEmpresa">Empresa</string>
     <string name="textContribuidor">Contribuidor</string>
+    <string name="txtCadastroUsuario">Cadastro de usuário</string>
+    <string name="txtSalvar">Salvar</string>
+    <string name="txtManageEmpresa">Empresa</string>
+    <string name="txtManageProdutos">Produtos</string>
+    <string name="txtManageInventario">Inventário</string>
+    <string name="title_activity_seleciona_empresa">SelecionaEmpresaActivity</string>
+    <string name="txtSelecionarEmpresa">Selecione a empresa</string>
+    <string name="txtExportarProduto">Exportar Produtos</string>
+    <string name="txtImportarProdutos">Importar Produtos</string>
+    <string name="txtGerenciarProdutos">Gerenciar Produtos</string>
+    <string name="txtProdutoDescricao">Descrição</string>
+    <string name="txtProdutoCodRef">Cód. Referência</string>
+    <string name="title_activity_teste">TesteActivity</string>
 </resources>

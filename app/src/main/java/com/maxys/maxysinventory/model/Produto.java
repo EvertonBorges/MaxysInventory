@@ -14,21 +14,24 @@ public class Produto implements Comparable<Produto> {
 
     private String descricao;
     private String codReferencia;
+    private String usuarioCadastro;
     private HashMap<String, Movimentacao> movimentacoes;
 
     public Produto() {
         this.movimentacoes = new HashMap<>();
     }
 
-    public Produto(int id, String descricao, String codReferencia) {
+    public Produto(int id, String descricao, String codReferencia, String usuarioCadastro) {
         this.descricao = descricao;
         this.codReferencia = codReferencia;
+        this.usuarioCadastro = usuarioCadastro;
         this.movimentacoes = new HashMap<>();
     }
 
-    public Produto(String descricao, String codReferencia, HashMap<String, Movimentacao> movimentacoes) {
+    public Produto(String descricao, String codReferencia, String usuarioCadastro, HashMap<String, Movimentacao> movimentacoes) {
         this.descricao = descricao;
         this.codReferencia = codReferencia;
+        this.usuarioCadastro = usuarioCadastro;
         this.movimentacoes = movimentacoes;
     }
 
@@ -46,6 +49,14 @@ public class Produto implements Comparable<Produto> {
 
     public void setCodReferencia(String codReferencia) {
         this.codReferencia = codReferencia;
+    }
+
+    public String getUsuarioCadastro() {
+        return usuarioCadastro;
+    }
+
+    public void setUsuarioCadastro(String usuarioCadastro) {
+        this.usuarioCadastro = usuarioCadastro;
     }
 
     public HashMap<String, Movimentacao> getMovimentacoes() {

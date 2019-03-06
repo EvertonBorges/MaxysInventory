@@ -18,7 +18,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".EmpresaActivity"></activity>
+        <activity android:name=".secondaryActivities.ManageProdutoActivity" />
+        <activity android:name=".secondaryActivities.ProdutoMenuActivity" />
+        <activity android:name=".secondaryActivities.SelecionaEmpresaActivity" />
+        <activity android:name=".PrincipalActivity" />
+        <activity android:name=".secondaryActivities.EmpresaActivity" />
         <activity android:name=".secondaryActivities.CreateAccountActivity" />
         <activity
             android:name=".secondaryActivities.LoginActivity"
@@ -33,7 +37,7 @@
             android:name=".secondaryActivities.BarCodeActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".MainActivity"
+            android:name=".secondaryActivities.MovimentacaoActivity"
             android:screenOrientation="portrait" />
     </application>
 

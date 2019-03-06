@@ -1,16 +1,13 @@
 package com.maxys.maxysinventory.model;
 
-public class Contribuidor {
+import java.io.Serializable;
 
-    private String id;
+public class Contribuidor implements Serializable {
+
     private String nome;
+    private String email;
 
     public Contribuidor() {
-    }
-
-    public Contribuidor(String id, String nome) {
-        this.id = id;
-        this.nome = nome;
     }
 
     public String getNome() {
@@ -21,12 +18,12 @@ public class Contribuidor {
         this.nome = nome;
     }
 
-    public String getId() {
-        return id;
+    public String getEmail() {
+        return email;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
 }

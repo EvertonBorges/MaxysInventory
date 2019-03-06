@@ -12,13 +12,17 @@ import android.widget.Button;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.DatabaseReference;
 import com.maxys.maxysinventory.R;
-import com.maxys.maxysinventory.model.Contribuidor;
+import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
+import com.maxys.maxysinventory.config.Nomes;
+import com.maxys.maxysinventory.model.LogAcoes;
+import com.maxys.maxysinventory.model.Usuario;
+import com.maxys.maxysinventory.util.Base64Custom;
 import com.maxys.maxysinventory.util.Util;
 
+import java.util.Calendar;
 import java.util.Objects;
-import java.util.UUID;
 
 public class CreateAccountActivity extends AppCompatActivity {
 
@@ -46,7 +50,7 @@ public class CreateAccountActivity extends AppCompatActivity {
         edtSenha = findViewById(R.id.edtCreateSenha);
         edtConfirmSenha = findViewById(R.id.edtCreateConfirmSenha);
 
-        textLayoutNome = findViewById(R.id.textLayoutCreateLogin);
+        textLayoutNome = findViewById(R.id.textLayoutCreateNome);
         textLayoutLogin = findViewById(R.id.textLayoutCreateLogin);
         textLayoutSenha = findViewById(R.id.textLayoutCreateSenha);
         textLayoutConfirmSenha = findViewById(R.id.textLayoutCreateCornfimSenha);
@@ -65,10 +69,10 @@ public class CreateAccountActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.toString().isEmpty()) {
-                    textLayoutLogin.setErrorEnabled(true);
-                    textLayoutLogin.setError("Preencha o nome.");
+                    textLayoutNome.setErrorEnabled(true);
+                    textLayoutNome.setError("Preencha o nome.");
                 } else {
-                    textLayoutLogin.setErrorEnabled(false);
+                    textLayoutNome.setErrorEnabled(false);
                 }
             }
         });
@@ -87,10 +91,10 @@ public class CreateAccountActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.toString().isEmpty()) {
-                    textLayoutNome.setErrorEnabled(true);
-                    textLayoutNome.setError("Preencha o login.");
+                    textLayoutLogin.setErrorEnabled(true);
+                    textLayoutLogin.setError("Preencha o e-mail.");
                 } else {
-                    textLayoutNome.setErrorEnabled(false);
+                    textLayoutLogin.setErrorEnabled(false);
                 }
             }
         });
@@ -149,8 +153,6 @@ public class CreateAccountActivity extends AppCompatActivity {
     }
 
     private void CriarConta() {
-        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-
         if (textLayoutNome.isErrorEnabled() || textLayoutLogin.isErrorEnabled() || textLayoutSenha.isErrorEnabled() || textLayoutConfirmSenha.isErrorEnabled()) {
             if (textLayoutNome.isErrorEnabled()) {
                 Util.AlertaInfo(this, "ERRO - NOME", "Verifique o nome");
@@ -166,21 +168,40 @@ public class CreateAccountActivity extends AppCompatActivity {
                 edtConfirmSenha.requestFocus();
             }
         } else {
-            firebaseAuth.createUserWithEmailAndPassword(Objects.requireNonNull(edtLogin.getText()).toString(), Objects.requireNonNull(edtSenha.getText()).toString()).addOnCompleteListener(this, task -> {
+            FirebaseAuth firebaseAuth = ConfiguracaoFirebase.getFirebaseAuth();
+
+            Usuario usuario = new Usuario();
+            usuario.setEmail(edtLogin.getText().toString());
+            usuario.setNome(Objects.requireNonNull(edtNome.getText()).toString());
+            usuario.setAdmin(false);
+
+            firebaseAuth.createUserWithEmailAndPassword(usuario.getEmail(), Objects.requireNonNull(edtSenha.getText()).toString())
+                        .addOnCompleteListener(this, task -> {
                 if (task.isSuccessful()) {
-                    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-                    Contribuidor contribuidor = new Contribuidor(UUID.randomUUID().toString(), Objects.requireNonNull(edtNome.getText()).toString());
+                    String idUsuario = Base64Custom.codificarBase64(usuario.getEmail());
 
-                    firebaseDatabase.getReference("Contribuidor").child(contribuidor.getId()).setValue(contribuidor);
+                    DatabaseReference databaseReference = ConfiguracaoFirebase.getFirebase()
+                                                                              .child(Nomes.getChaveUsuario())
+                                                                              .child(idUsuario);
 
-                    Util.AlertaInfo(this, "SUCESSO", "Usuário criado com SUCESSO.").setOnDismissListener(dialog -> {
-                        if (firebaseAuth.getCurrentUser() != null) {
-                            firebaseAuth.signOut();
+
+                    databaseReference.setValue(usuario).addOnCompleteListener(command -> {
+                        if (command.isSuccessful()) {
+                            String acao = "Criação de novo usuário.";
+
+                            LogAcoes logAcoes = new LogAcoes();
+                            logAcoes.setIdUsuario(idUsuario);
+                            logAcoes.setDescricao(acao);
+                            logAcoes.salvarLog();
+
+                            Util.AlertaInfo(this, "SUCESSO", "Usuário criado com SUCESSO.").setOnDismissListener(dialog -> {
+                                if (firebaseAuth.getCurrentUser() != null) {
+                                    firebaseAuth.signOut();
+                                }
+
+                                finish();
+                            });
                         }
-
-                        Intent intent = new Intent(this, LoginActivity.class);
-                        startActivity(intent);
-                        finish();
                     });
                 } else {
                     if (task.getException().getClass().equals(FirebaseAuthUserCollisionException.class)) {

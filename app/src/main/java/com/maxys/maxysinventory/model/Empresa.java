@@ -1,27 +1,20 @@
 package com.maxys.maxysinventory.model;
 
+import com.google.firebase.database.Exclude;
+
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
-public class Empresa {
+public class Empresa implements Serializable {
 
     private String id;
-    private String name;
+    private String nome;
+    private Long dataHoraCriacao;
 
     public Empresa() {
-    }
-
-    public Empresa(String id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        setDataHoraCriacao(Calendar.getInstance().getTimeInMillis());
     }
 
     public String getId() {
@@ -30,6 +23,29 @@ public class Empresa {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public Long getDataHoraCriacao() {
+        return dataHoraCriacao;
+    }
+
+    public void setDataHoraCriacao(Long dataHoraCriacao) {
+        this.dataHoraCriacao = dataHoraCriacao;
+    }
+
+    @Exclude
+    public Calendar getDataHora() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(this.dataHoraCriacao);
+        return calendar;
     }
 
 }

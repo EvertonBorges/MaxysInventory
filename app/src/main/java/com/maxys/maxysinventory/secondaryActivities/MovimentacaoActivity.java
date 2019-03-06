@@ -1,10 +1,8 @@
-package com.maxys.maxysinventory;
+package com.maxys.maxysinventory.secondaryActivities;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Handler;
@@ -34,18 +32,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.maxys.maxysinventory.R;
+import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Movimentacao;
 import com.maxys.maxysinventory.model.Produto;
-import com.maxys.maxysinventory.model.ProdutoAdapter;
+import com.maxys.maxysinventory.model.MovimentacaoAdapter;
 import com.maxys.maxysinventory.model.TipoRetornoIntent;
-import com.maxys.maxysinventory.secondaryActivities.BarCodeActivity;
-import com.maxys.maxysinventory.secondaryActivities.LoginActivity;
 import com.maxys.maxysinventory.util.Permissao;
 import com.maxys.maxysinventory.util.Util;
 import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -56,7 +53,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-public class MainActivity extends AppCompatActivity {
+public class MovimentacaoActivity extends AppCompatActivity {
 
     private ConstraintLayout vwPrincipal;
 
@@ -73,21 +70,23 @@ public class MainActivity extends AppCompatActivity {
 
     private HashMap<String, Produto> produtos = new HashMap<>();
     private List<Produto> produtosFiltro = new ArrayList<>();
-    private ProdutoAdapter adapterProdutos;
+    private MovimentacaoAdapter adapterProdutos;
 
     public static ProgressDialog progressDialog;
     private static Handler handler;
 
-    private final FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    private DatabaseReference databaseReference;
     private final FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private String[] permissoesNecessarias = new String[] { Manifest.permission.INTERNET /*, Manifest.permission.WRITE_EXTERNAL_STORAGE*/ };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_movimentacao);
 
         Permissao.validaPermissao(1,this, permissoesNecessarias);
+
+        databaseReference = ConfiguracaoFirebase.getFirebase();
 
         vwPrincipal = findViewById(R.id.vwPrincipal);
         tgbEstadoMercadoria = findViewById(R.id.tgbEstadoMercadoria);
@@ -121,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         MaskTextWatcher maskTextCodReferencia = new MaskTextWatcher(edtCodReferencia, simpleMaskCodReferencia);
         edtCodReferencia.addTextChangedListener(maskTextCodReferencia);
 
-        eventoDatabase(firebaseDatabase);
+        eventoDatabase();
 
         handler = new Handler();
 
@@ -172,14 +171,14 @@ public class MainActivity extends AppCompatActivity {
 
         if (permitido) {
             new MaterialFilePicker()
-                    .withActivity(MainActivity.this)
+                    .withActivity(MovimentacaoActivity.this)
                     .withRequestCode(TipoRetornoIntent.FILE_SEARCH.ordinal())
                     .withFilter(Pattern.compile(".*\\.txt$")) // Filtering files and directories by file name using regexp
                     //.withFilterDirectories(true) // Set directories filterable (false by default)
                     //.withHiddenFiles(true) // Show hidden files and folders
                     .start();
         } else {
-            Util.AlertaInfo(MainActivity.this, "Permissão arquivos", "É necessária permitir o acesso aos diretórios e arquivos do dispositivo.");
+            Util.AlertaInfo(MovimentacaoActivity.this, "Permissão arquivos", "É necessária permitir o acesso aos diretórios e arquivos do dispositivo.");
         }
     }
 
@@ -233,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
         } else { //
             handler.post(() -> inicializaProgressDialog("Consultando produto", "Consultando..."));
 
-            Query query = firebaseDatabase.getReference("Produto").orderByChild("codReferencia").startAt(codReferencia).endAt(codReferencia).limitToFirst(1);
+            Query query = databaseReference.child("Produto").orderByChild("codReferencia").startAt(codReferencia).endAt(codReferencia).limitToFirst(1);
 
             ValueEventListener valueEventListener = new ValueEventListener() {
                 @Override
@@ -246,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                                 progressDialog.dismiss();
                             }
 
-                            Util.AlertaInfo(MainActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + edtCodReferencia.getText().toString() + " não encontrado.");
+                            Util.AlertaInfo(MovimentacaoActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + edtCodReferencia.getText().toString() + " não encontrado.");
                             limparCampos();
                         });
                     } else {
@@ -261,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
 
                             boolean isAvariado = !tgbEstadoMercadoria.isChecked();
                             Movimentacao movimentacao = new Movimentacao(Calendar.getInstance(), isAvariado, qtde);
-                            firebaseDatabase.getReference("Produto").child(key).child("movimentacoes").child(UUID.randomUUID().toString()).setValue(movimentacao);
+                            databaseReference.child("Produto").child(key).child("movimentacoes").child(UUID.randomUUID().toString()).setValue(movimentacao);
 
                             Toast.makeText(getApplicationContext(), "Movimentação cadastrada com sucesso.", Toast.LENGTH_LONG).show();
                             limparCampos();
@@ -277,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
                                     progressDialog.dismiss();
                                 }
 
-                                Util.AlertaInfo(MainActivity.this, "ERRO", "Erro ao enviar as informações.\n\nErro: " + ex.getMessage());
+                                Util.AlertaInfo(MovimentacaoActivity.this, "ERRO", "Erro ao enviar as informações.\n\nErro: " + ex.getMessage());
                                 limparCampos();
                             });
                         }
@@ -288,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
                                     progressDialog.dismiss();
                                 }
 
-                                Util.AlertaInfo(MainActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + edtCodReferencia.getText().toString() + " não encontrado.");
+                                Util.AlertaInfo(MovimentacaoActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + edtCodReferencia.getText().toString() + " não encontrado.");
 
                                 limparCampos();
                             });
@@ -305,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
                             progressDialog.dismiss();
                         }
 
-                        Util.AlertaInfo(MainActivity.this, "ERRO", "Houve algum erro ao cadastrar a movimentação no produto.");
+                        Util.AlertaInfo(MovimentacaoActivity.this, "ERRO", "Houve algum erro ao cadastrar a movimentação no produto.");
                     }));
                 }
             };
@@ -314,10 +313,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void eventoDatabase(FirebaseDatabase firebaseDatabase) {
-        DatabaseReference databaseReferenceProduto = firebaseDatabase.getReference("Produto");
-
-        databaseReferenceProduto.addValueEventListener(new ValueEventListener() {
+    private void eventoDatabase() {
+        databaseReference.child("Produto")
+                         .addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 produtos.clear();
@@ -330,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
                 updateFilteredData();
                 Collections.sort(produtosFiltro);
 
-                adapterProdutos = new ProdutoAdapter(produtosFiltro);
+                adapterProdutos = new MovimentacaoAdapter(produtosFiltro);
                 rcvInventario.setAdapter(adapterProdutos);
             }
 
@@ -396,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (requestCode == TipoRetornoIntent.FILE_SEARCH.ordinal()) {
             if (resultCode == RESULT_OK) {
                 String path = Objects.requireNonNull(data).getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
-                Util.AlertaInfo(MainActivity.this, "DADOS ARQUIVO", "Arquivo: " + path + "\nDados:\n" + Util.readFile(path).toString());
+                Util.AlertaInfo(MovimentacaoActivity.this, "DADOS ARQUIVO", "Arquivo: " + path + "\nDados:\n" + Util.readFile(path).toString());
             }
         }
 
