@@ -1,28 +1,35 @@
 package com.maxys.maxysinventory.model;
 
+import com.google.firebase.database.Exclude;
+
+import java.io.Serializable;
 import java.util.Calendar;
 
-public class Movimentacao implements Comparable<Movimentacao> {
+public class Movimentacao implements Serializable {
 
-    private Calendar dataHora;
+    private String idProduto;
+    private Long dataHoraMovimentacao;
     private boolean avariado;
-    private int qtde;
+    private double qtde;
 
     public Movimentacao() {
+        dataHoraMovimentacao = Calendar.getInstance().getTimeInMillis();
     }
 
-    public Movimentacao(Calendar dataHora, boolean avariado, int qtde) {
-        this.dataHora = dataHora;
-        this.avariado = avariado;
-        this.qtde = qtde;
+    public Long getDataHoraMovimentacao() {
+        return dataHoraMovimentacao;
     }
 
-    public Calendar getDataHora() {
-        return dataHora;
+    public void setDataHoraMovimentacao(Long dataHoraMovimentacao) {
+        this.dataHoraMovimentacao = dataHoraMovimentacao;
     }
 
-    public void setDataHora(Calendar dataHora) {
-        this.dataHora = dataHora;
+    public String getIdProduto() {
+        return idProduto;
+    }
+
+    public void setIdProduto(String idProduto) {
+        this.idProduto = idProduto;
     }
 
     public boolean isAvariado() {
@@ -33,16 +40,19 @@ public class Movimentacao implements Comparable<Movimentacao> {
         this.avariado = avariado;
     }
 
-    public int getQtde() {
+    public double getQtde() {
         return qtde;
     }
 
-    public void setQtde(int qtde) {
+    public void setQtde(double qtde) {
         this.qtde = qtde;
     }
 
-    @Override
-    public int compareTo(Movimentacao o) {
-        return this.getDataHora().compareTo(o.getDataHora());
+    @Exclude
+    public Calendar getDataHora() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(this.dataHoraMovimentacao);
+        return calendar;
     }
+
 }

@@ -1,14 +1,18 @@
 package com.maxys.maxysinventory.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Usuario implements Serializable {
 
     private String nome;
     private String email;
-    private boolean admin;
+
+    private List<Permissao> permissoes;
 
     public Usuario() {
+        permissoes = new ArrayList<>();
     }
 
     public String getNome() {
@@ -27,11 +31,12 @@ public class Usuario implements Serializable {
         this.email = email;
     }
 
-    public boolean isAdmin() {
-        return admin;
+    public List<Permissao> getPermissoes() {
+        return permissoes;
     }
 
-    public void setAdmin(boolean admin) {
-        this.admin = admin;
+    public void setPermissoes(List<Permissao> permissoes) {
+        this.permissoes = permissoes;
     }
+
 }

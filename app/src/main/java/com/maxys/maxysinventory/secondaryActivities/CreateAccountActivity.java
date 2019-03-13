@@ -1,10 +1,13 @@
 package com.maxys.maxysinventory.secondaryActivities;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import com.google.android.material.textfield.TextInputLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.appcompat.widget.AppCompatEditText;
+
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.Button;
@@ -37,6 +40,9 @@ public class CreateAccountActivity extends AppCompatActivity {
     private TextInputLayout textLayoutLogin;
     private TextInputLayout textLayoutSenha;
     private TextInputLayout textLayoutConfirmSenha;
+
+    private final Handler handler = new Handler();
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,6 +159,18 @@ public class CreateAccountActivity extends AppCompatActivity {
     }
 
     private void CriarConta() {
+        handler.post(() -> {
+            if (progressDialog != null) {
+                if (progressDialog.isShowing()) {
+                    progressDialog.dismiss();
+                }
+            }
+
+            progressDialog = Util.inicializaProgressDialog(CreateAccountActivity.this, "AGUARDE", "Realizando a criação da conta...");
+
+            progressDialog.show();
+        });
+
         if (textLayoutNome.isErrorEnabled() || textLayoutLogin.isErrorEnabled() || textLayoutSenha.isErrorEnabled() || textLayoutConfirmSenha.isErrorEnabled()) {
             if (textLayoutNome.isErrorEnabled()) {
                 Util.AlertaInfo(this, "ERRO - NOME", "Verifique o nome");
@@ -171,9 +189,8 @@ public class CreateAccountActivity extends AppCompatActivity {
             FirebaseAuth firebaseAuth = ConfiguracaoFirebase.getFirebaseAuth();
 
             Usuario usuario = new Usuario();
-            usuario.setEmail(edtLogin.getText().toString());
+            usuario.setEmail(Objects.requireNonNull(edtLogin.getText()).toString());
             usuario.setNome(Objects.requireNonNull(edtNome.getText()).toString());
-            usuario.setAdmin(false);
 
             firebaseAuth.createUserWithEmailAndPassword(usuario.getEmail(), Objects.requireNonNull(edtSenha.getText()).toString())
                         .addOnCompleteListener(this, task -> {
@@ -187,20 +204,29 @@ public class CreateAccountActivity extends AppCompatActivity {
 
                     databaseReference.setValue(usuario).addOnCompleteListener(command -> {
                         if (command.isSuccessful()) {
-                            String acao = "Criação de novo usuário.";
+                            Util.salvarLog(null, idUsuario, "Criação de novo usuário.");
 
-                            LogAcoes logAcoes = new LogAcoes();
-                            logAcoes.setIdUsuario(idUsuario);
-                            logAcoes.setDescricao(acao);
-                            logAcoes.salvarLog();
+                            handler.post(() -> {
+                                if (progressDialog.isShowing()) {
+                                    progressDialog.dismiss();
+                                }
+                            });
 
-                            Util.AlertaInfo(this, "SUCESSO", "Usuário criado com SUCESSO.").setOnDismissListener(dialog -> {
+                            Util.AlertaInfo(this, "SUCESSO", "Usuário criado com sucesso.").setOnDismissListener(dialog -> {
                                 if (firebaseAuth.getCurrentUser() != null) {
                                     firebaseAuth.signOut();
                                 }
 
                                 finish();
                             });
+                        } else {
+                            handler.post(() -> {
+                                if (progressDialog.isShowing()) {
+                                    progressDialog.dismiss();
+                                }
+                            });
+
+                            Util.AlertaInfo(this, "ERRO", "Tente novamente.");
                         }
                     });
                 } else {
@@ -225,9 +251,6 @@ public class CreateAccountActivity extends AppCompatActivity {
         if (firebaseAuth.getCurrentUser() != null) {
             firebaseAuth.signOut();
         }
-
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
         finish();
 
         super.onBackPressed();

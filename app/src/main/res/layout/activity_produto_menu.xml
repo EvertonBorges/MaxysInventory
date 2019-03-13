@@ -65,28 +65,33 @@
                 style="@style/RaisedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:drawableStart="@drawable/ic_import_datas"
                 android:drawableLeft="@drawable/ic_import_datas"
                 android:gravity="start|center_vertical"
                 android:text="@string/txtImportarProdutos"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:visibility="gone" />
 
             <Button
                 android:id="@+id/btn_menu_produto_exportar"
                 style="@style/RaisedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:drawableStart="@drawable/ic_export_datas"
                 android:drawableLeft="@drawable/ic_export_datas"
                 android:gravity="start|center_vertical"
                 android:text="@string/txtExportarProduto"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:visibility="gone" />
 
             <Button
                 android:id="@+id/btn_menu_produto_gerenciar"
                 style="@style/RaisedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:drawableStart="@drawable/ic_manage_produtos"
                 android:drawableLeft="@drawable/ic_manage_produtos"
                 android:gravity="start|center_vertical"

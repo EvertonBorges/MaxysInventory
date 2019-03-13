@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -17,10 +16,14 @@ import com.google.firebase.database.ValueEventListener;
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.adapter.EmpresaAdapter;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
+import com.maxys.maxysinventory.model.Contribuidor;
 import com.maxys.maxysinventory.model.Empresa;
+import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.TipoSelecaoEmpresa;
 import com.maxys.maxysinventory.model.TipoTransicaoEmpresa;
-import com.maxys.maxysinventory.util.Preferencias;
+import com.maxys.maxysinventory.model.Usuario;
+import com.maxys.maxysinventory.util.Base64Custom;
+import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
 
 import java.util.ArrayList;
@@ -32,6 +35,11 @@ public class SelecionaEmpresaActivity extends AppCompatActivity {
     private TipoTransicaoEmpresa tipoTransicao;
     private ArrayAdapter adapter;
     private List<Empresa> empresas;
+
+    private PreferenciasStatic preferencias;
+
+    private DatabaseReference databaseReference;
+    private ValueEventListener valueEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,16 +58,26 @@ public class SelecionaEmpresaActivity extends AppCompatActivity {
         adapter = new EmpresaAdapter(SelecionaEmpresaActivity.this, empresas);
         lvEmpresas.setAdapter(adapter);
 
-        Preferencias preferencias = new Preferencias(SelecionaEmpresaActivity.this);
-        String idUsuario = preferencias.getIdentificador();
+        preferencias = PreferenciasStatic.getInstance();
+        String idUsuario = preferencias.getIdUsuarioLogado();
+        Usuario usuario = preferencias.getUsuario();
 
-        ibAddEmpresa.setVisibility(preferencias.isAdmin() && tipoSelecao.equals(TipoSelecaoEmpresa.CRUD) ? View.VISIBLE : View.GONE);
+        List<String> permissoes = new ArrayList<>();
+        for (Permissao permissao: usuario.getPermissoes()) {
+            if (!permissoes.contains(permissao.getNome())) {
+                permissoes.add(permissao.getNome());
+            }
+        }
 
-        DatabaseReference databaseReference = ConfiguracaoFirebase.getFirebase()
-                                                                  .child("contribuidor_empresas")
-                                                                  .child(idUsuario);
+        boolean permitirAdicionarEmpresa = permissoes.contains("actAdicionarEmpresa");
 
-        databaseReference.addValueEventListener(new ValueEventListener() {
+        ibAddEmpresa.setVisibility(permitirAdicionarEmpresa && tipoSelecao.equals(TipoSelecaoEmpresa.CRUD) ? View.VISIBLE : View.GONE);
+
+        databaseReference = ConfiguracaoFirebase.getFirebase()
+                                                .child("contribuidor_empresas")
+                                                .child(idUsuario);
+
+        valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 empresas.clear();
@@ -76,7 +94,7 @@ public class SelecionaEmpresaActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        };
 
         lvEmpresas.setOnItemClickListener((parent, view, position, id) -> {
             Empresa empresa = empresas.get(position);
@@ -108,10 +126,43 @@ public class SelecionaEmpresaActivity extends AppCompatActivity {
     }
 
     private void abrirProximaTela(Empresa empresa, Class classe) {
-        Intent intent = new Intent(SelecionaEmpresaActivity.this, classe);
-        intent.putExtra("empresa", empresa);
-        startActivity(intent);
-        finish();
+        DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
+        reference.child("empresa_contribuidores")
+                 .child(empresa.getId())
+                 .child(Base64Custom.codificarBase64(preferencias.getUsuario().getEmail()))
+                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                     @Override
+                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                         if (dataSnapshot.getValue() != null) {
+                             Contribuidor contribuidor = dataSnapshot.getValue(Contribuidor.class);
+                             preferencias.salvarContribuidor(contribuidor);
+
+                             Intent intent = new Intent(SelecionaEmpresaActivity.this, classe);
+                             intent.putExtra("empresa", empresa);
+                             startActivity(intent);
+                         } else {
+                             Util.AlertaInfo(SelecionaEmpresaActivity.this, "CONTRIBUIDOR", "Você não é contribuidor desta empresa.\n Feche o aplicativo e abra-o novamente.");
+                         }
+                     }
+
+                     @Override
+                     public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                     }
+                 });
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        databaseReference.addValueEventListener(valueEventListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        databaseReference.removeEventListener(valueEventListener);
+    }
 }

@@ -2,7 +2,6 @@ package com.maxys.maxysinventory.secondaryActivities;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
@@ -12,13 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.appcompat.widget.AppCompatEditText;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,12 +22,11 @@ import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.adapter.ProdutoAdapter;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Empresa;
-import com.maxys.maxysinventory.model.LogAcoes;
-import com.maxys.maxysinventory.model.Usuario;
+import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.Produto;
 import com.maxys.maxysinventory.model.TipoRetornoIntent;
-import com.maxys.maxysinventory.util.Permissao;
-import com.maxys.maxysinventory.util.Preferencias;
+
+import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
 
 import java.util.ArrayList;
@@ -65,10 +59,8 @@ public class ManageProdutoActivity extends AppCompatActivity {
 
         produtos = new ArrayList<>();
 
-        Permissao.validaPermissao(1,this, permissoesNecessarias);
-
-        Preferencias preferencias = new Preferencias(ManageProdutoActivity.this);
-        idUsuarioLogado = preferencias.getIdentificador();
+        PreferenciasStatic preferencias = PreferenciasStatic.getInstance();
+        idUsuarioLogado = preferencias.getIdUsuarioLogado();
         empresa = (Empresa) getIntent().getSerializableExtra("empresa");
 
         edtCodReferencia = findViewById(R.id.et_manage_produto_cod_ref);
@@ -79,7 +71,18 @@ public class ManageProdutoActivity extends AppCompatActivity {
         ImageButton btnSalvar = findViewById(R.id.btn_manage_produto_salvar);
 
         ListView lvProdutos = findViewById(R.id.lv_manage_produto);
-        adapter = new ProdutoAdapter(ManageProdutoActivity.this, produtos, empresa.getId());
+        List<String> permissoes = new ArrayList<>();
+        for (Permissao permissao: preferencias.getContribuidor().getPermissoes()) {
+            if (!permissoes.contains(permissao.getNome())) {
+                permissoes.add(permissao.getNome());
+            }
+        }
+
+        boolean permitirRemoverProduto = permissoes.contains("actRemoverProduto");
+        boolean permitirAdicionarProduto = permissoes.contains("actAdicionarProduto");
+        boolean permitirAlterarProduto = permissoes.contains("actAlterarProduto");
+
+        adapter = new ProdutoAdapter(ManageProdutoActivity.this, produtos, empresa.getId(), permitirRemoverProduto);
         lvProdutos.setAdapter(adapter);
 
         databaseReference = ConfiguracaoFirebase.getFirebase();
@@ -108,11 +111,12 @@ public class ManageProdutoActivity extends AppCompatActivity {
                          });
 
         btnBarcode.setOnClickListener(v -> {
-            boolean permitido = Permissao.validaPermissao(1,this, new String[] { Manifest.permission.CAMERA });
 
-            if (permitido) {
+
+            //if (permitido) {
                 Intent intent = new Intent(ManageProdutoActivity.this, BarCodeActivity.class);
                 startActivityForResult(intent, TipoRetornoIntent.BARCODE_SCAN.ordinal());
+                /*
             } else {
                 AlertDialog.Builder dialog = new AlertDialog.Builder(getApplicationContext());
                 dialog.setTitle("Permissão Câmera");
@@ -120,6 +124,7 @@ public class ManageProdutoActivity extends AppCompatActivity {
                 dialog.setCancelable(true);
                 dialog.show();
             }
+            */
         });
 
         btnLimpar.setOnClickListener(v -> {

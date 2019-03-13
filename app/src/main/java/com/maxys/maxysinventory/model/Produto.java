@@ -2,6 +2,7 @@ package com.maxys.maxysinventory.model;
 
 import android.os.Build;
 
+import com.google.firebase.database.Exclude;
 import com.maxys.maxysinventory.util.Util;
 
 import java.io.Serializable;

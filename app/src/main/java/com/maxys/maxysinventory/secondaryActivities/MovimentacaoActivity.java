@@ -1,125 +1,120 @@
 package com.maxys.maxysinventory.secondaryActivities;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Handler;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.os.Bundle;
-
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.View;
+import android.os.Handler;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.github.rtoshiro.util.format.SimpleMaskFormatter;
-import com.github.rtoshiro.util.format.text.MaskTextWatcher;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.maxys.maxysinventory.R;
+import com.maxys.maxysinventory.adapter.InventarioAdapter;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
+import com.maxys.maxysinventory.model.Empresa;
 import com.maxys.maxysinventory.model.Movimentacao;
 import com.maxys.maxysinventory.model.Produto;
+import com.maxys.maxysinventory.model.Inventario;
 import com.maxys.maxysinventory.model.TipoRetornoIntent;
-import com.maxys.maxysinventory.util.Permissao;
+import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
-import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
-import java.util.regex.Pattern;
 
-public class MovimentacaoActivity extends AppCompatActivity {
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
 
-    private ConstraintLayout vwPrincipal;
+public class MovimentacaoActivity extends AppCompatActivity implements  EasyPermissions.PermissionCallbacks {
 
     private ToggleButton tgbEstadoMercadoria;
     private EditText edtQtde;
     private EditText edtCodReferencia;
-    private Button btnQrCode;
+    private ImageButton btnQrCode;
     private Button btnEnviar;
-    private RecyclerView rcvInventario;
     private CheckBox chkAutoBarcode;
     private EditText edtPesquisa;
 
-    private Button btnFileChooser;
-
-    private HashMap<String, Produto> produtos = new HashMap<>();
-    private List<Produto> produtosFiltro = new ArrayList<>();
-    //private MovimentacaoAdapter adapterProdutos;
+    private ListView listView;
+    private InventarioAdapter adapter;
+    private List<Inventario> inventarioTop10;
+    private Empresa empresa;
+    private String idUsuarioLogado;
 
     public static ProgressDialog progressDialog;
     private static Handler handler;
 
     private DatabaseReference databaseReference;
-    private final FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-    private String[] permissoesNecessarias = new String[] { Manifest.permission.INTERNET /*, Manifest.permission.WRITE_EXTERNAL_STORAGE*/ };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movimentacao);
 
-        Permissao.validaPermissao(1,this, permissoesNecessarias);
+        inventarioTop10 = new ArrayList<>();
 
         databaseReference = ConfiguracaoFirebase.getFirebase();
 
-        vwPrincipal = findViewById(R.id.vwPrincipal);
-        tgbEstadoMercadoria = findViewById(R.id.tgbEstadoMercadoria);
-        edtQtde = findViewById(R.id.edtQtde);
-        edtCodReferencia = findViewById(R.id.edtCodReferencia);
-        btnQrCode = findViewById(R.id.btnBarCode);
-        btnEnviar = findViewById(R.id.btnEnviar);
-        rcvInventario = findViewById(R.id.rcvInventario);
+        PreferenciasStatic preferencias = PreferenciasStatic.getInstance();
+        idUsuarioLogado = preferencias.getIdUsuarioLogado();
+
+        tgbEstadoMercadoria = findViewById(R.id.tb_movimentacao_estado_mercadoria);
+        edtQtde = findViewById(R.id.et_movimentacao_qtde);
+        edtCodReferencia = findViewById(R.id.et_movimentacao_cod_referencia);
+        btnQrCode = findViewById(R.id.ib_movimentacao_barcode);
+        btnEnviar = findViewById(R.id.bt_movimentacao_enviar);
+        listView = findViewById(R.id.lv_movimentacao);
         chkAutoBarcode = findViewById(R.id.chkAutoBarCode);
-        edtPesquisa = findViewById(R.id.edtPesquisa);
-
-        btnFileChooser = findViewById(R.id.btnFileChooser);
-
-        rcvInventario.setLayoutManager(new LinearLayoutManager(this));
-
-        vwPrincipal.setVisibility(View.GONE);
-
-        if (firebaseAuth.getCurrentUser() != null) {
-            vwPrincipal.setVisibility(View.VISIBLE);
-        } else {
-            onBackPressed();
-        }
+        edtPesquisa = findViewById(R.id.et_movimentacao_pesquisa_produto);
 
         tgbEstadoMercadoria.setOnCheckedChangeListener((buttonView, isChecked) -> tgbEstadoMercadoria.setBackgroundResource(isChecked ? R.color.toggleOn: R.color.toggleOff));
 
-        SimpleMaskFormatter simpleMaskQtde = new SimpleMaskFormatter("NNN");
-        MaskTextWatcher maskTextQtde = new MaskTextWatcher(edtQtde, simpleMaskQtde);
-        edtQtde.addTextChangedListener(maskTextQtde);
+        empresa = (Empresa) getIntent().getSerializableExtra("empresa");
 
-        SimpleMaskFormatter simpleMaskCodReferencia = new SimpleMaskFormatter("NNNNNNNNNNNNN");
-        MaskTextWatcher maskTextCodReferencia = new MaskTextWatcher(edtCodReferencia, simpleMaskCodReferencia);
-        edtCodReferencia.addTextChangedListener(maskTextCodReferencia);
+        databaseReference = ConfiguracaoFirebase.getFirebase();
 
-        eventoDatabase();
+        adapter = new InventarioAdapter(MovimentacaoActivity.this, inventarioTop10);
+        listView.setAdapter(adapter);
+
+        databaseReference.child("inventario")
+                         .child(empresa.getId())
+                         .orderByChild("dataHoraMovimentacao")
+                         .limitToLast(10)
+                         .addValueEventListener(new ValueEventListener() {
+                             @Override
+                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                 inventarioTop10.clear();
+
+                                 if (dataSnapshot.getValue() != null) {
+                                     for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                         Inventario inventario = snapshot.getValue(Inventario.class);
+
+                                         inventarioTop10.add(inventario);
+                                     }
+                                 }
+
+                                 adapter.notifyDataSetChanged();
+                             }
+
+                             @Override
+                             public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                             }
+                         });
 
         handler = new Handler();
 
@@ -129,85 +124,16 @@ public class MovimentacaoActivity extends AppCompatActivity {
             }
         }.start());
 
-        btnQrCode.setOnClickListener(v -> {
-            boolean permitido = Permissao.validaPermissao(1,this, new String[] { Manifest.permission.CAMERA });
-
-            if (permitido) {
-                Intent intent = new Intent(this, BarCodeActivity.class);
-                startActivityForResult(intent, TipoRetornoIntent.BARCODE_SCAN.ordinal());
-            } else {
-                AlertDialog.Builder dialog = new AlertDialog.Builder(getApplicationContext());
-                dialog.setTitle("Permissão Câmera");
-                dialog.setMessage("É necessário aceitar o uso da câmera para utilizar esta funcionalidade.");
-                dialog.setCancelable(true);
-                dialog.show();
-            }
-        });
-
-        edtPesquisa.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                updateFilteredData();
-                //Collections.sort(produtosFiltro);
-            }
-        });
-
-        btnFileChooser.setOnClickListener(v -> showFileChooser());
+        btnQrCode.setOnClickListener(v -> cameraPermissao());
     }
 
-    private void showFileChooser() {
-        boolean permitido = Permissao.validaPermissao(1,this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE});
-
-        if (permitido) {
-            new MaterialFilePicker()
-                    .withActivity(MovimentacaoActivity.this)
-                    .withRequestCode(TipoRetornoIntent.FILE_SEARCH.ordinal())
-                    .withFilter(Pattern.compile(".*\\.txt$")) // Filtering files and directories by file name using regexp
-                    //.withFilterDirectories(true) // Set directories filterable (false by default)
-                    //.withHiddenFiles(true) // Show hidden files and folders
-                    .start();
-        } else {
-            Util.AlertaInfo(MovimentacaoActivity.this, "Permissão arquivos", "É necessária permitir o acesso aos diretórios e arquivos do dispositivo.");
-        }
-    }
-
-    private void updateFilteredData() {
-        produtosFiltro.clear();
-
-        for (Produto produto: produtos.values()) {
-            if (matchesFilter(produto)) {
-                produtosFiltro.add(produto);
-            }
-        }
-    }
-
-    private boolean matchesFilter(Produto produto) {
-        String filterString = edtPesquisa.getText().toString().trim();
-
-        if (filterString.isEmpty()) {
-            return true;
-        }
-
-        String lowerCaseFilterString = filterString.toLowerCase();
-        if (produto.getDescricao().toLowerCase().contains(lowerCaseFilterString)) {
-            return true;
-        }
-        return produto.getCodReferencia().toLowerCase().contains(lowerCaseFilterString);
-
+    private void abrirCameraIntent() {
+        Intent intent = new Intent(this, BarCodeActivity.class);
+        startActivityForResult(intent, TipoRetornoIntent.BARCODE_SCAN.ordinal());
     }
 
     private void realizarEnvio() {
-        handler.post(() -> inicializaProgressDialog("REGISTRANDO", "Registrando movimentação..."));
+        handler.post(() -> inicializaProgressDialog("PRODUTO", "Validando informações..."));
 
         int qtde = Integer.parseInt(edtQtde.getText().toString().isEmpty() ? "1" : edtQtde.getText().toString());
         String codReferencia = edtCodReferencia.getText().toString();
@@ -228,115 +154,141 @@ public class MovimentacaoActivity extends AppCompatActivity {
 
                 Util.AlertaInfo(this, "CÓD. REFERÊNCIA", "Cód. de referência deve ser informado.");
             });
-        } else { //
-            handler.post(() -> inicializaProgressDialog("Consultando produto", "Consultando..."));
+        } else {
+            handler.post(() -> inicializaProgressDialog("REGISTRANDO", "Registrando movimentação..."));
 
-            Query query = databaseReference.child("Produto").orderByChild("codReferencia").startAt(codReferencia).endAt(codReferencia).limitToFirst(1);
+            DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
+            reference.child("empresa_produtos")
+                     .child(empresa.getId())
+                     .orderByChild("codReferencia")
+                     .equalTo(codReferencia)
+                     .limitToFirst(1)
+                     .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.getValue() != null) {
+                            for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                String idProduto = snapshot.getKey();
+                                Produto produto = snapshot.getValue(Produto.class);
 
-            ValueEventListener valueEventListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    boolean encontrou = false;
+                                try {
+                                    boolean isAvariado = !tgbEstadoMercadoria.isChecked();
+                                    Movimentacao movimentacao = new Movimentacao();
+                                    movimentacao.setQtde(qtde);
+                                    movimentacao.setIdProduto(idProduto);
+                                    movimentacao.setAvariado(isAvariado);
 
-                    if (!dataSnapshot.exists()) {
-                        handler.post(() -> {
+                                    reference.child("empresa_movimentacoes")
+                                             .child(empresa.getId())
+                                             .push()
+                                             .setValue(movimentacao)
+                                             .addOnCompleteListener(task -> {
+                                                 if (task.isSuccessful()) {
+                                                     Util.salvarLog(empresa.getId(), idUsuarioLogado, "Movimentação registrada para o produto: " + idProduto);
+
+                                                     reference.child("empresa_movimentacoes")
+                                                              .child(empresa.getId())
+                                                              .orderByChild("idProduto")
+                                                              .equalTo(idProduto)
+                                                              .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                 @Override
+                                                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                                     Inventario inventario = new Inventario();
+                                                                     inventario.setCodReferencia(produto.getCodReferencia());
+                                                                     inventario.setDescricao(produto.getDescricao());
+
+                                                                     if (dataSnapshot.getValue() != null) {
+                                                                         for (DataSnapshot snapshot1: dataSnapshot.getChildren()) {
+                                                                             Movimentacao m = snapshot1.getValue(Movimentacao.class);
+                                                                             if (m.isAvariado()) {
+                                                                                 inventario.addAvarias(m.getQtde());
+                                                                             } else {
+                                                                                 inventario.addSaldo(m.getQtde());
+                                                                             }
+                                                                         }
+                                                                     }
+
+                                                                     reference.child("inventario")
+                                                                              .child(empresa.getId())
+                                                                              .child(idProduto)
+                                                                              .setValue(inventario).addOnCompleteListener(command -> {
+                                                                                  if (command.isSuccessful()) {
+                                                                                      Util.salvarLog(empresa.getId(), idUsuarioLogado, "Inventário do produto " + idProduto + " foi cadastradi/atualizado.");
+
+                                                                                      handler.post(() -> {
+                                                                                          if (progressDialog.isShowing()) {
+                                                                                              progressDialog.dismiss();
+                                                                                          }
+
+                                                                                          Toast.makeText(MovimentacaoActivity.this, "Movimentação e inventário cadastrados com sucesso.", Toast.LENGTH_LONG).show();
+                                                                                          limparCampos();
+                                                                                      });
+                                                                                  } else {
+                                                                                      Util.salvarLog(empresa.getId(), idUsuarioLogado, "Erro ao realizar a atualização/cadastro do inventário para o produto " + idProduto);
+
+                                                                                      handler.post(() -> {
+                                                                                          if (progressDialog.isShowing()) {
+                                                                                              progressDialog.dismiss();
+                                                                                          }
+
+                                                                                          Util.AlertaInfo(MovimentacaoActivity.this, "INVENTÁRIO", "Falha ao salvar o inventário.");
+                                                                                      });
+                                                                                  }
+                                                                     });
+
+                                                                 }
+
+                                                                 @Override
+                                                                 public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                                 }
+                                                             });
+                                                 } else {
+                                                     handler.post(() -> {
+                                                         if (progressDialog.isShowing()) {
+                                                             progressDialog.dismiss();
+                                                         }
+
+                                                         Util.AlertaInfo(MovimentacaoActivity.this, "MOVIMENTAÇÃO", "Falha ao salvar a movimentação.");
+                                                     });
+                                                 }
+                                             });
+
+
+                                } catch (Exception ex) {
+                                    handler.post(() -> {
+                                        if (progressDialog.isShowing()) {
+                                            progressDialog.dismiss();
+                                        }
+
+                                        Util.AlertaInfo(MovimentacaoActivity.this, "ERRO", "Erro ao enviar as informações.\n\nErro: " + ex.getMessage());
+                                        limparCampos();
+                                    });
+                                }
+                            }
+                        } else {
+                            handler.post(() -> {
+                                if (progressDialog.isShowing()) {
+                                    progressDialog.dismiss();
+                                }
+
+                                Util.AlertaInfo(MovimentacaoActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + codReferencia + " não encontrado.");
+
+                                limparCampos();
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        handler.post(() -> handler.post(() -> {
                             if (progressDialog.isShowing()) {
                                 progressDialog.dismiss();
                             }
-
-                            Util.AlertaInfo(MovimentacaoActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + edtCodReferencia.getText().toString() + " não encontrado.");
-                            limparCampos();
-                        });
-                    } else {
-                        String key = Objects.requireNonNull(dataSnapshot.getValue()).toString().split("=")[0].replaceAll("[^\\d]", "");
-
-                        int qtde = 1;
-                        int qtdeBruta = Integer.parseInt(edtQtde.getText().toString().isEmpty() ? "0" : edtQtde.getText().toString());
-                        if (qtdeBruta > 1) qtde = qtdeBruta;
-
-                        try {
-                            encontrou = true;
-
-                            boolean isAvariado = !tgbEstadoMercadoria.isChecked();
-                            Movimentacao movimentacao = new Movimentacao(Calendar.getInstance(), isAvariado, qtde);
-                            databaseReference.child("Produto").child(key).child("movimentacoes").child(UUID.randomUUID().toString()).setValue(movimentacao);
-
-                            Toast.makeText(getApplicationContext(), "Movimentação cadastrada com sucesso.", Toast.LENGTH_LONG).show();
-                            limparCampos();
-
-                            handler.post(() -> {
-                                if (progressDialog.isShowing()) {
-                                    progressDialog.dismiss();
-                                }
-                            });
-                        } catch (Exception ex) {
-                            handler.post(() -> {
-                                if (progressDialog.isShowing()) {
-                                    progressDialog.dismiss();
-                                }
-
-                                Util.AlertaInfo(MovimentacaoActivity.this, "ERRO", "Erro ao enviar as informações.\n\nErro: " + ex.getMessage());
-                                limparCampos();
-                            });
-                        }
-
-                        if (!encontrou) {
-                            handler.post(() -> {
-                                if (progressDialog.isShowing()) {
-                                    progressDialog.dismiss();
-                                }
-
-                                Util.AlertaInfo(MovimentacaoActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + edtCodReferencia.getText().toString() + " não encontrado.");
-
-                                limparCampos();
-                            });
-                        }
-
-                        query.removeEventListener(this);
+                        }));
                     }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    handler.post(() -> handler.post(() -> {
-                        if (progressDialog.isShowing()) {
-                            progressDialog.dismiss();
-                        }
-
-                        Util.AlertaInfo(MovimentacaoActivity.this, "ERRO", "Houve algum erro ao cadastrar a movimentação no produto.");
-                    }));
-                }
-            };
-
-            query.addValueEventListener(valueEventListener);
+            });
         }
-    }
-
-    private void eventoDatabase() {
-        databaseReference.child("Produto")
-                         .addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                produtos.clear();
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot snapshotProduto : dataSnapshot.getChildren()) {
-                        produtos.put(snapshotProduto.getKey(), snapshotProduto.getValue(Produto.class));
-                    }
-                }
-
-                updateFilteredData();
-                //Collections.sort(produtosFiltro);
-
-                //adapterProdutos = new MovimentacaoAdapter(produtosFiltro);
-                //rcvInventario.setAdapter(adapterProdutos);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-
-        });
     }
 
     private void limparCampos() {
@@ -361,18 +313,7 @@ public class MovimentacaoActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (Arrays.equals(permissions, permissoesNecessarias)) {
-            for (int resultado : grantResults) {
-                if (resultado == PackageManager.PERMISSION_DENIED) {
-                    alertaValidacaoPermissao();
-                }
-            }
-        }
-    }
-
-    private void alertaValidacaoPermissao() {
-        Util.AlertaInfo(this, "Permissões negadas", "Para utilizar esse app, é necessário aceitar as permissões",
-                ((dialog, which) -> finish()));
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 
     @Override
@@ -400,16 +341,35 @@ public class MovimentacaoActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-
-        if (firebaseAuth.getCurrentUser() != null) {
-            firebaseAuth.signOut();
+    @AfterPermissionGranted(0)
+    private void cameraPermissao() {
+        String[] perms = {Manifest.permission.CAMERA};
+        if (EasyPermissions.hasPermissions(this, perms)) {
+            abrirCameraIntent();
+        } else {
+            EasyPermissions.requestPermissions(this, "Permissão de uso da câmera.", TipoRetornoIntent.BARCODE_SCAN.ordinal() , perms);
         }
-
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
-        finish();
     }
+
+
+    @Override
+    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+        if (requestCode == TipoRetornoIntent.BARCODE_SCAN.ordinal()) {
+            if (perms.contains(Manifest.permission.CAMERA)) {
+                abrirCameraIntent();
+            }
+        }
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
+        if (requestCode == TipoRetornoIntent.BARCODE_SCAN.ordinal()) {
+            if (perms.contains(Manifest.permission.CAMERA)) {
+                Util.AlertaInfo(MovimentacaoActivity.this,
+                                "PERMISSÃO CÂMERA",
+                                "É necessário aceitar o uso da câmera para utilizar esta funcionalidade.");
+            }
+        }
+    }
+
 }

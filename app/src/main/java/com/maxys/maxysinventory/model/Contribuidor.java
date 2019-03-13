@@ -1,13 +1,17 @@
 package com.maxys.maxysinventory.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Contribuidor implements Serializable {
 
     private String nome;
     private String email;
+    private List<Permissao> permissoes;
 
     public Contribuidor() {
+        permissoes = new ArrayList<>();
     }
 
     public String getNome() {
@@ -24,6 +28,14 @@ public class Contribuidor implements Serializable {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public List<Permissao> getPermissoes() {
+        return permissoes;
+    }
+
+    public void setPermissoes(List<Permissao> permissoes) {
+        this.permissoes = permissoes;
     }
 
 }

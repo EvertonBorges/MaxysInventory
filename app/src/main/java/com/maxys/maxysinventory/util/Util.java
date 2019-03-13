@@ -4,21 +4,16 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.net.Uri;
+import android.os.Handler;
 
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.model.LogAcoes;
 import com.maxys.maxysinventory.model.Movimentacao;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -39,30 +34,10 @@ public class Util {
         return progressDialog;
     }
 
-    public static Calendar maiorCalendar(Collection<Movimentacao> movimentacoes) {
-        List<Calendar> calendars = new ArrayList<>();
-        if (movimentacoes != null) {
-            if (!movimentacoes.isEmpty()) {
-                for (Movimentacao movimentacao: movimentacoes) {
-                    calendars.add(movimentacao.getDataHora());
-                }
-            }
+    public static void finalizarProgressDialog(Handler handler, ProgressDialog progressDialog) {
+        if (progressDialog.isShowing()) {
+            handler.post(progressDialog::dismiss);
         }
-        return maiorCalendar(calendars);
-    }
-
-    public static Calendar maiorCalendar(List<Calendar> calendars) {
-        Calendar retorno = null;
-        if (calendars != null) {
-            if (!calendars.isEmpty()) {
-                for (Calendar calendar: calendars) {
-                    if (calendar.compareTo(retorno) > 0) {
-                        retorno = calendar;
-                    }
-                }
-            }
-        }
-        return retorno;
     }
 
     public static AlertDialog AlertaInfo(Context context, String title, String message) {
@@ -103,6 +78,53 @@ public class Util {
         logAcoes.salvarLog();
 
         logAcoes = null;
+    }
+
+    public static String insereNCaracteres(String texto, String caracter, int qtdeCaracteres, boolean esquerda) {
+        String retorno = "";
+
+        // Quantidade 0 (zero) preserva a string passada.
+        if (qtdeCaracteres == 0) {
+            retorno = texto;
+        } else {
+            if (texto.length() < qtdeCaracteres) {
+                int qtde = qtdeCaracteres - texto.length();
+                StringBuilder caracterPreenchimento = new StringBuilder();
+                for (int i = 0; i < qtde; i++) {
+                    caracterPreenchimento.insert(0, caracter);
+                }
+
+                if (esquerda) {
+                    retorno = caracterPreenchimento + texto;
+                } else {
+                    retorno = texto + caracterPreenchimento;
+                }
+            } else {
+                retorno = texto.substring(0, qtdeCaracteres);
+            }
+        }
+
+        return retorno;
+    }
+
+    public static String insereZeros(double numero, int parteInteira, int parteFracionaria) {
+        String retorno;
+
+        String texto = String.valueOf(numero).replaceAll(",", "");
+        if (texto.contains(".")) {
+            String[] partes = texto.split("\\.");
+            partes[0] = insereNCaracteres(partes[0], "0", parteInteira, true);
+            partes[1] = insereNCaracteres(partes[1], "0", parteFracionaria, false);
+
+            retorno = partes[0] + "." + partes[1];
+        } else {
+            String esquerda = insereNCaracteres(texto, "0", parteInteira, true);
+            String direita = insereNCaracteres(texto, "0", parteFracionaria, false);
+
+            retorno = esquerda + "." + direita;
+        }
+
+        return retorno;
     }
 
 }

@@ -18,8 +18,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Produto;
-import com.maxys.maxysinventory.secondaryActivities.ManageProdutoActivity;
-import com.maxys.maxysinventory.util.Preferencias;
+import com.maxys.maxysinventory.util.PreferenciasShared;
+import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
 
 import java.util.List;
@@ -29,12 +29,14 @@ public class ProdutoAdapter extends ArrayAdapter<Produto> {
     private Context context;
     private String idEmpresa;
     private List<Produto> produtos;
+    private boolean isActRemoverProduto;
 
-    public ProdutoAdapter(Context context, List<Produto> objects, String idEmpresa) {
+    public ProdutoAdapter(Context context, List<Produto> objects, String idEmpresa, boolean isActRemoverProduto) {
         super(context, 0, objects);
         this.context = context;
         this.idEmpresa = idEmpresa;
         this.produtos = objects;
+        this.isActRemoverProduto = isActRemoverProduto;
     }
 
     @Override
@@ -43,6 +45,9 @@ public class ProdutoAdapter extends ArrayAdapter<Produto> {
 
         if (produtos != null) {
             if (!produtos.isEmpty()) {
+                PreferenciasStatic preferencias = PreferenciasStatic.getInstance();
+                String idUsuarioLogado = preferencias.getIdUsuarioLogado();
+
                 LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 view = inflater.inflate(R.layout.recycle_produto, parent, false);
 
@@ -51,6 +56,8 @@ public class ProdutoAdapter extends ArrayAdapter<Produto> {
 
                 ImageButton ibEditar = view.findViewById(R.id.ib_item_produto_editar);
                 ImageButton ibRemover = view.findViewById(R.id.ib_item_produto_remover);
+
+                ibRemover.setVisibility(isActRemoverProduto ? View.VISIBLE : View.GONE);
 
                 Produto produto = produtos.get(position);
                 tvCodReferencia.setText("Cód.: " + produto.getCodReferencia());
@@ -66,7 +73,7 @@ public class ProdutoAdapter extends ArrayAdapter<Produto> {
 
                 ibRemover.setOnClickListener(v -> {
                     DatabaseReference databaseReference = ConfiguracaoFirebase.getFirebase();
-                    databaseReference.child("empresa_produtos")
+                    databaseReference.child("inventario")
                                      .child(idEmpresa)
                                      .orderByChild("codReferencia")
                                      .equalTo(produto.getCodReferencia())
@@ -75,26 +82,71 @@ public class ProdutoAdapter extends ArrayAdapter<Produto> {
                                          @Override
                                          public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                              if (dataSnapshot.getValue() != null) {
-                                                 Preferencias preferencias = new Preferencias(context);
-                                                 String idUsuarioLogado = preferencias.getIdentificador();
+                                                 AlertDialog.Builder alert = new AlertDialog.Builder(context);
+                                                 alert.setTitle("REMOVER PRODUTO");
+                                                 alert.setMessage("Produto possui movimentações registradas, deseja realmente remove-lo?");
+                                                 alert.setCancelable(true);
+                                                 alert.setPositiveButton("Sim", (dialog, which) -> {
+                                                     for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                                         String idProduto = snapshot.getKey();
 
+                                                         snapshot.getRef().removeValue().addOnCompleteListener(command -> {
+                                                             // Removido de inventário.
+                                                             if (command.isSuccessful()) {
+                                                                 Util.salvarLog(idEmpresa, idUsuarioLogado, "Produto " + produto.getCodReferencia() + " removido do inventário.");
+                                                             }
+                                                         });
+                                                         databaseReference.child("empresa_produtos").child(idEmpresa).child(idProduto).removeValue().addOnCompleteListener(command -> {
+                                                             // Removido de empresa_produtos
+                                                             if (command.isSuccessful()) {
+                                                                 Util.salvarLog(idEmpresa, idUsuarioLogado, "Produto " + produto.getCodReferencia() + " removido de empresa_produtos.");
+                                                             }
+                                                         });
+                                                         databaseReference.child("empresa_movimentacoes").child(idEmpresa).orderByChild("idProduto").equalTo(idProduto).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                             @Override
+                                                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                                 if (dataSnapshot.getValue() != null) {
+                                                                     for (DataSnapshot snapshot1: dataSnapshot.getChildren()) {
+                                                                         snapshot1.getRef().removeValue(); // Remove de empresa_movimentações.
+                                                                     }
+
+                                                                     Util.salvarLog(idEmpresa, idUsuarioLogado, "Produto " + produto.getCodReferencia() + " removido de empresa_movimentacoes.");
+                                                                 }
+                                                             }
+
+                                                             @Override
+                                                             public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                             }
+                                                         });
+
+                                                     }
+                                                 });
+                                                 alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
+                                                 alert.show();
+                                             } else {
                                                  AlertDialog.Builder alert = new AlertDialog.Builder(context);
                                                  alert.setTitle("REMOVER PRODUTO");
                                                  alert.setMessage("Deseja realmente remover o produto?");
                                                  alert.setCancelable(true);
                                                  alert.setPositiveButton("Sim", (dialog, which) -> {
-                                                     for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                                                         snapshot.getRef()
-                                                                 .removeValue()
-                                                                 .addOnCompleteListener(task -> {
-                                                                     if (task.isSuccessful()) {
-                                                                         Util.AlertaInfo(context, "PRODUTO REMOVIDO", "Produto removido com sucesso.");
-                                                                         Util.salvarLog(idEmpresa, idUsuarioLogado, "Produto (" + produto.getCodReferencia() + ") removido com sucesso.");
-                                                                     } else {
-                                                                         Util.AlertaInfo(context, "ERRO PRODUTO", "Erro ao remover o produto.");
-                                                                     }
-                                                                 });
-                                                     }
+                                                     databaseReference.child("empresa_produtos").child(idEmpresa).orderByChild("codReferencia").equalTo(produto.getCodReferencia()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                         @Override
+                                                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                             if (dataSnapshot.getValue() != null) {
+                                                                 for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                                                     snapshot.getRef().removeValue();
+                                                                 }
+
+                                                                 Util.salvarLog(idEmpresa, idUsuarioLogado, "Produto " + produto.getCodReferencia() + " removido de empresa_produtos.");
+                                                             }
+                                                         }
+
+                                                         @Override
+                                                         public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                         }
+                                                     });
                                                  });
                                                  alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
                                                  alert.show();

@@ -57,16 +57,7 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/imageView3"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:paddingTop="24dp"
-        android:paddingBottom="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView3">
+        android:layout_margin="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -74,15 +65,27 @@
             android:orientation="vertical">
 
             <Button
+                android:id="@+id/btn_principal_permissoes"
+                style="@style/RaisedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:drawableStart="@drawable/ic_lock_open_white_24dp"
+                android:drawableLeft="@drawable/ic_lock_open_white_24dp"
+                android:gravity="start|center_vertical"
+                android:text="@string/txtManagePermissoesGerais"
+                android:visibility="gone" />
+
+            <Button
                 android:id="@+id/btn_principal_empresa"
                 style="@style/RaisedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_company"
-                android:drawableLeft="@drawable/ic_company"
+                android:layout_marginBottom="8dp"
+                android:drawableStart="@drawable/ic_account_balance_white_24dp"
+                android:drawableLeft="@drawable/ic_account_balance_white_24dp"
                 android:gravity="start|center_vertical"
                 android:text="@string/txtManageEmpresa"
-                android:textSize="18sp"
                 android:visibility="gone" />
 
             <Button
@@ -90,24 +93,22 @@
                 style="@style/RaisedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:drawableStart="@drawable/ic_product"
-                android:drawableLeft="@drawable/ic_product"
+                android:layout_marginBottom="8dp"
+                android:drawableStart="@drawable/ic_inbox_white_24dp"
+                android:drawableLeft="@drawable/ic_inbox_white_24dp"
                 android:gravity="start|center_vertical"
-                android:text="@string/txtManageProdutos"
-                android:textSize="18sp" />
+                android:text="@string/txtManageProdutos" />
 
             <Button
                 android:id="@+id/btn_principal_inventario"
                 style="@style/RaisedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:drawableStart="@drawable/ic_inventory"
-                android:drawableLeft="@drawable/ic_inventory"
+                android:layout_marginBottom="8dp"
+                android:drawableStart="@drawable/ic_storage_white_24dp"
+                android:drawableLeft="@drawable/ic_storage_white_24dp"
                 android:gravity="start|center_vertical"
-                android:text="@string/txtManageInventario"
-                android:textSize="18sp" />
+                android:text="@string/txtManageInventario" />
 
         </LinearLayout>
     </ScrollView>

@@ -25,7 +25,7 @@ import com.maxys.maxysinventory.model.Empresa;
 import com.maxys.maxysinventory.model.LogAcoes;
 import com.maxys.maxysinventory.model.Usuario;
 import com.maxys.maxysinventory.util.Base64Custom;
-import com.maxys.maxysinventory.util.Preferencias;
+import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
 
 import java.util.ArrayList;
@@ -45,8 +45,9 @@ public class EmpresaActivity extends AppCompatActivity {
     private List<Contribuidor> contribuidores;
     private ListView lvContribuidores;
 
+    // Informações da sessão.
     private String idUsuarioLogado;
-
+    private Usuario usuario;
     private Empresa empresa;
 
     private DatabaseReference databaseReference;
@@ -66,8 +67,9 @@ public class EmpresaActivity extends AppCompatActivity {
         Intent it = getIntent();
         empresa = (Empresa) it.getSerializableExtra("empresa");
 
-        Preferencias preferencias = new Preferencias(EmpresaActivity.this);
-        idUsuarioLogado = preferencias.getIdentificador();
+        PreferenciasStatic preferencias = PreferenciasStatic.getInstance();
+        usuario = preferencias.getUsuario();
+        idUsuarioLogado = preferencias.getIdUsuarioLogado();
 
         if (empresa == null) {
             empresa = new Empresa();
@@ -86,8 +88,8 @@ public class EmpresaActivity extends AppCompatActivity {
             });
 
             Contribuidor contribuidor = new Contribuidor();
-            contribuidor.setEmail(Base64Custom.decodificarBase64(preferencias.getIdentificador()));
-            contribuidor.setNome(preferencias.getNome());
+            contribuidor.setEmail(usuario.getEmail());
+            contribuidor.setNome(usuario.getNome());
 
             databaseReference.child("empresa_contribuidores")
                              .child(empresa.getId())
@@ -162,15 +164,9 @@ public class EmpresaActivity extends AppCompatActivity {
                                      .child(Base64Custom.codificarBase64(contribuidor.getEmail()))
                                      .setValue(contribuidor).addOnCompleteListener(command -> {
                                 if (command.isSuccessful()) {
-                                    Toast.makeText(EmpresaActivity.this, "Contribuidor cadastrado com sucesso para a empresa!", Toast.LENGTH_LONG).show();
-
-                                    LogAcoes logAcoes = new LogAcoes();
-                                    logAcoes.setIdUsuario(idUsuarioLogado);
-                                    logAcoes.setIdEmpresa(empresa.getId());
-                                    logAcoes.setDescricao("Adicionado contribuidor (" + Base64Custom.codificarBase64(contribuidor.getEmail()) + ") para a empresa (" + empresa.getId() + ").");
-                                    logAcoes.salvarLog();
+                                    Util.salvarLog(empresa.getId(), idUsuarioLogado, "Adicionado contribuidor '" + Base64Custom.codificarBase64(contribuidor.getEmail()) + "' a empresa");
                                 } else {
-                                    Util.AlertaInfo(EmpresaActivity.this, "ERRO CONTRIBUIDOR", "Por algum motivo falhou o cadastro do contribuidor para a empresa.");
+                                    Util.salvarLog(empresa.getId(), idUsuarioLogado, "Erro ao adicionar contribuidor '" + Base64Custom.codificarBase64(contribuidor.getEmail()) + "' a empresa.");
                                 }
                             });
 
@@ -179,21 +175,13 @@ public class EmpresaActivity extends AppCompatActivity {
                                     .child(empresa.getId())
                                     .setValue(empresa).addOnCompleteListener(command -> {
                                 if (command.isSuccessful()) {
-                                    Toast.makeText(EmpresaActivity.this, "Empresa cadastrada com sucesso para o contribuidor!", Toast.LENGTH_LONG).show();
-
-                                    LogAcoes logAcoes = new LogAcoes();
-                                    logAcoes.setIdUsuario(idUsuarioLogado);
-                                    logAcoes.setIdEmpresa(empresa.getId());
-                                    logAcoes.setDescricao("Adicionado empresa (" + empresa.getId() + ") para o contribuidor (" + Base64Custom.codificarBase64(contribuidor.getEmail()) + ").");
-                                    logAcoes.salvarLog();
+                                    Util.salvarLog(empresa.getId(), idUsuarioLogado, "Adicionado empresa ao contribuidor '" + Base64Custom.codificarBase64(contribuidor.getEmail()) + "'.");
                                 } else {
-                                    Util.AlertaInfo(EmpresaActivity.this, "ERRO EMPRESA", "Por algum motivo falhou o cadastro da empresa para o contribuidor.");
+                                    Util.salvarLog(empresa.getId(), idUsuarioLogado, "Erro ao adicionar empresa ao contribuidor '" + Base64Custom.codificarBase64(contribuidor.getEmail()) + "' .");
                                 }
                             });
-
-
                         } else {
-                            Toast.makeText(EmpresaActivity.this, "Usuário não encontrado", Toast.LENGTH_LONG).show();
+                            Util.AlertaInfo(EmpresaActivity.this, "ERRO USUÁRIO", "Usuário não encontrado");
                         }
                     }
 
@@ -216,33 +204,20 @@ public class EmpresaActivity extends AppCompatActivity {
                 reference.child("empresa").child(empresa.getId())
                         .setValue(empresa).addOnCompleteListener(command -> {
                     if (command.isSuccessful()) {
-                        Toast.makeText(EmpresaActivity.this, "Empresa atualizada com sucesso!", Toast.LENGTH_LONG).show();
-
-                        LogAcoes logAcoes = new LogAcoes();
-                        logAcoes.setIdUsuario(idUsuarioLogado);
-                        logAcoes.setIdEmpresa(empresa.getId());
-                        logAcoes.setDescricao("Informações atualizadas para a empresa (" + empresa.getId() + ").");
-                        logAcoes.salvarLog();
+                        Util.salvarLog(empresa.getId(), idUsuarioLogado, "Informações atualizadas para a empresa (" + empresa.getId() + ").");
 
                         reference.child("contribuidor_empresas").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                                    for (DataSnapshot snapshot1: snapshot.getChildren()) {
-                                        if (empresa.getId().equals(snapshot1.getKey())) {
-                                            reference.child("contribuidor_empresas")
-                                                    .child(snapshot.getKey())
-                                                    .child(snapshot1.getKey())
-                                                    .setValue(empresa).addOnCompleteListener(command1 -> {
-                                                if (command1.isSuccessful()) {
-                                                    LogAcoes logAcoes = new LogAcoes();
-                                                    logAcoes.setIdUsuario(idUsuarioLogado);
-                                                    logAcoes.setIdEmpresa(empresa.getId());
-                                                    logAcoes.setDescricao("Informações da empresa (" + snapshot1.getKey() + ") atualizadas para o contribuidor (" + snapshot.getKey() + ").");
-                                                    logAcoes.salvarLog();
-                                                }
-                                            });
-                                        }
+                                if (dataSnapshot.getValue() != null) {
+                                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                        snapshot.getRef().child(empresa.getId()).setValue(empresa).addOnCompleteListener(command1 -> {
+                                            if (command1.isSuccessful()) {
+                                                Util.salvarLog(empresa.getId(), idUsuarioLogado, "Informações da empresa atualizadas, para o contribuidor '" + snapshot.getKey() + "'.");
+                                            } else {
+                                                Util.salvarLog(empresa.getId(), idUsuarioLogado, "Erro ao atualizar informações da empresa, para o contribuidor '" + snapshot.getKey() + "'.");
+                                            }
+                                        });
                                     }
                                 }
                             }
@@ -252,9 +227,11 @@ public class EmpresaActivity extends AppCompatActivity {
 
                             }
                         });
-                    } else {
-                        Toast.makeText(EmpresaActivity.this, "Erro ao atualizar a empresa.", Toast.LENGTH_LONG).show();
+
+                        Util.AlertaInfo(EmpresaActivity.this, "EMPRESA ATUALIZADA", "Empresa atualizada com sucesso.");
                         finish();
+                    } else {
+                        Util.AlertaInfo(EmpresaActivity.this, "ERRO", "Erro ao atualizar a empresa.");
                     }
                 });
             }

@@ -14,19 +14,23 @@ import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
+import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.TipoSelecaoEmpresa;
 import com.maxys.maxysinventory.model.TipoTransicaoEmpresa;
 import com.maxys.maxysinventory.model.Usuario;
 import com.maxys.maxysinventory.secondaryActivities.LoginActivity;
 import com.maxys.maxysinventory.secondaryActivities.SelecionaEmpresaActivity;
-import com.maxys.maxysinventory.util.Preferencias;
+import com.maxys.maxysinventory.util.PreferenciasStatic;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class PrincipalActivity extends AppCompatActivity {
 
     private FirebaseAuth firebaseAuth;
+    private PreferenciasStatic preferencias;
 
     @SuppressLint("SimpleDateFormat")
     private final SimpleDateFormat formatadorData = new SimpleDateFormat("dd/MM/yyyy");
@@ -38,6 +42,7 @@ public class PrincipalActivity extends AppCompatActivity {
 
         TextView txtUsuario = findViewById(R.id.txt_principal_usuario);
         TextView txtData = findViewById(R.id.txt_principal_data);
+        Button btnPermissoes = findViewById(R.id.btn_principal_permissoes);
         Button btnEmpresa = findViewById(R.id.btn_principal_empresa);
         Button btnProduto = findViewById(R.id.btn_principal_produtos);
         Button btnInventario = findViewById(R.id.btn_principal_inventario);
@@ -47,15 +52,30 @@ public class PrincipalActivity extends AppCompatActivity {
         toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
         setSupportActionBar(toolbar);
 
-        Preferencias preferencias = new Preferencias(this);
-        txtUsuario.setText(preferencias.getNome());
+        preferencias = PreferenciasStatic.getInstance();
+        Usuario usuario = preferencias.getUsuario();
+        txtUsuario.setText(usuario.getNome());
 
-        btnEmpresa.setVisibility(preferencias.isAdmin() ? View.VISIBLE : View.GONE);
+        List<String> permissoes = new ArrayList<>();
+        for (Permissao permissao: usuario.getPermissoes()) {
+            if (!permissoes.contains(permissao.getNome())) {
+                permissoes.add(permissao.getNome());
+            }
+        }
+
+        boolean permitirVisualizarEmpresa = permissoes.contains("actMenuEmpresa");
+
+        btnEmpresa.setVisibility(permitirVisualizarEmpresa ? View.VISIBLE : View.GONE);
 
         String data = "Data: " + formatadorData.format(Calendar.getInstance().getTime());
         txtData.setText(data);
 
         firebaseAuth = ConfiguracaoFirebase.getFirebaseAuth();
+
+        btnPermissoes.setOnClickListener(v -> {
+
+
+        });
 
         btnEmpresa.setOnClickListener(v -> {
             Intent intent = new Intent(PrincipalActivity.this, SelecionaEmpresaActivity.class);
@@ -103,7 +123,12 @@ public class PrincipalActivity extends AppCompatActivity {
     }
 
     private void deslogarUsuario() {
-        firebaseAuth.signOut();
+        if (firebaseAuth.getCurrentUser() != null) {
+            firebaseAuth.signOut();
+        }
+
+        preferencias.removerUsuario();
+
         Intent intent = new Intent(PrincipalActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
