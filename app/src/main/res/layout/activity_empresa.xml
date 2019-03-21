@@ -74,7 +74,7 @@
             android:id="@+id/ib_empresa_add_contribuidor"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:background="@color/transparent"
+            android:background="?android:attr/selectableItemBackground"
             app:srcCompat="@drawable/ic_action_add" />
 
     </LinearLayout>
@@ -95,8 +95,7 @@
         android:divider="@color/accent"
         android:dividerHeight="1dp"
         android:layout_below="@id/divider1"
-        android:layout_alignBottom="@+id/divider2">
-    </ListView>
+        android:layout_alignBottom="@+id/divider2" />
 
     <View
         android:id="@+id/divider2"

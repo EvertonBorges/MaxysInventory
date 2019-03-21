@@ -5,14 +5,22 @@ import com.google.firebase.database.Exclude;
 import java.io.Serializable;
 import java.util.Calendar;
 
-public class Movimentacao implements Serializable {
+public class Movimentacao implements Serializable, Comparable {
 
     private String idProduto;
     private Long dataHoraMovimentacao;
     private boolean avariado;
     private double qtde;
+    private String idUsuario;
+    private String nomeUsuario;
+    private String emailUsuario;
 
     public Movimentacao() {
+        this.idProduto = "";
+        this.qtde = 0;
+        this.idUsuario = "";
+        this.nomeUsuario = "";
+        this.emailUsuario = "";
         dataHoraMovimentacao = Calendar.getInstance().getTimeInMillis();
     }
 
@@ -48,6 +56,30 @@ public class Movimentacao implements Serializable {
         this.qtde = qtde;
     }
 
+    public String getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(String idUsuario) {
+        this.idUsuario = idUsuario;
+    }
+
+    public String getNomeUsuario() {
+        return nomeUsuario;
+    }
+
+    public void setNomeUsuario(String nomeUsuario) {
+        this.nomeUsuario = nomeUsuario;
+    }
+
+    public String getEmailUsuario() {
+        return emailUsuario;
+    }
+
+    public void setEmailUsuario(String emailUsuario) {
+        this.emailUsuario = emailUsuario;
+    }
+
     @Exclude
     public Calendar getDataHora() {
         Calendar calendar = Calendar.getInstance();
@@ -55,4 +87,14 @@ public class Movimentacao implements Serializable {
         return calendar;
     }
 
+    @Override
+    public int compareTo(Object o) {
+        if (this.dataHoraMovimentacao.compareTo(((Movimentacao) o).getDataHoraMovimentacao()) > 0) {
+            return -1;
+        } else if (this.dataHoraMovimentacao.compareTo(((Movimentacao) o).getDataHoraMovimentacao()) < 0) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 }

@@ -17,7 +17,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
+import com.maxys.maxysinventory.model.ComportamentoTelaProduto;
 import com.maxys.maxysinventory.model.Produto;
+import com.maxys.maxysinventory.secondaryActivities.ManageProdutoActivity;
 import com.maxys.maxysinventory.util.PreferenciasShared;
 import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
@@ -26,17 +28,19 @@ import java.util.List;
 
 public class ProdutoAdapter extends ArrayAdapter<Produto> {
 
-    private Context context;
-    private String idEmpresa;
-    private List<Produto> produtos;
-    private boolean isActRemoverProduto;
+    private final Context context;
+    private final String idEmpresa;
+    private final List<Produto> produtos;
+    private final boolean isActRemoverProduto;
+    private final boolean isActAlterarProduto;
 
-    public ProdutoAdapter(Context context, List<Produto> objects, String idEmpresa, boolean isActRemoverProduto) {
+    public ProdutoAdapter(Context context, List<Produto> objects, String idEmpresa, boolean isActRemoverProduto, boolean isActAlterarProduto) {
         super(context, 0, objects);
         this.context = context;
         this.idEmpresa = idEmpresa;
         this.produtos = objects;
         this.isActRemoverProduto = isActRemoverProduto;
+        this.isActAlterarProduto = isActAlterarProduto;
     }
 
     @Override
@@ -57,6 +61,7 @@ public class ProdutoAdapter extends ArrayAdapter<Produto> {
                 ImageButton ibEditar = view.findViewById(R.id.ib_item_produto_editar);
                 ImageButton ibRemover = view.findViewById(R.id.ib_item_produto_remover);
 
+                ibEditar.setVisibility(isActAlterarProduto ? View.VISIBLE : View.GONE);
                 ibRemover.setVisibility(isActRemoverProduto ? View.VISIBLE : View.GONE);
 
                 Produto produto = produtos.get(position);
@@ -69,6 +74,8 @@ public class ProdutoAdapter extends ArrayAdapter<Produto> {
 
                     edtCodReferencia.setText(produto.getCodReferencia());
                     edtDescricao.setText(produto.getDescricao());
+
+                    ManageProdutoActivity.setComportamento(ComportamentoTelaProduto.EDIT, produto);
                 });
 
                 ibRemover.setOnClickListener(v -> {

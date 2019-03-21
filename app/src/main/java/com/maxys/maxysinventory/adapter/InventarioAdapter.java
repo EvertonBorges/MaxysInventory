@@ -33,12 +33,12 @@ public class InventarioAdapter extends ArrayAdapter<Inventario> {
         if (inventarios != null) {
             if (!inventarios.isEmpty()) {
                 LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                view = inflater.inflate(R.layout.recycle_movimentacao, parent, false);
+                view = inflater.inflate(R.layout.recycle_inventario, parent, false);
 
-                TextView descricao = view.findViewById(R.id.tv_item_movimentacao_produto);
-                TextView dataHora = view.findViewById(R.id.tv_item_movimentacao_data_hora);
-                TextView saldo = view.findViewById(R.id.tv_item_movimentacao_saldo);
-                TextView avariado = view.findViewById(R.id.tv_item_movimentacao_avariado);
+                TextView descricao = view.findViewById(R.id.tv_inventario_produto);
+                TextView dataHora = view.findViewById(R.id.tv_inventario_data_hora);
+                TextView saldo = view.findViewById(R.id.tv_inventario_saldo);
+                TextView avariado = view.findViewById(R.id.tv_inventario_avariado);
 
                 Inventario inventario = inventarios.get(position);
 

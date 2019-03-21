@@ -19,7 +19,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".PermissaoActivity"></activity>
+        <activity android:name=".secondaryActivities.MovimentacoesActivity"></activity>
+        <activity android:name=".secondaryActivities.UsuarioActivity" />
+        <activity android:name=".secondaryActivities.PermissaoActivity" />
         <activity android:name=".secondaryActivities.ManageProdutoActivity" />
         <activity android:name=".secondaryActivities.ProdutoMenuActivity" />
         <activity android:name=".secondaryActivities.SelecionaEmpresaActivity" />
@@ -39,7 +41,7 @@
             android:name=".secondaryActivities.BarCodeActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".secondaryActivities.MovimentacaoActivity"
+            android:name=".secondaryActivities.InventarioActivity"
             android:screenOrientation="portrait" />
     </application>
 

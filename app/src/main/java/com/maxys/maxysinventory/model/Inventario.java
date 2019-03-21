@@ -4,13 +4,15 @@ import android.os.Build;
 
 import com.google.firebase.database.Exclude;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Objects;
 
 import androidx.annotation.RequiresApi;
 
-public class Inventario {
+public class Inventario implements Serializable, Comparable {
 
+    private String idProduto;
     private String codReferencia;
     private String descricao;
     private double saldo;
@@ -18,9 +20,20 @@ public class Inventario {
     private Long dataHoraMovimentacao;
 
     public Inventario() {
+        this.idProduto = "";
+        this.codReferencia = "";
+        this.descricao = "";
         this.saldo = 0;
         this.avariados = 0;
         this.dataHoraMovimentacao = Calendar.getInstance().getTimeInMillis();
+    }
+
+    public String getIdProduto() {
+        return idProduto;
+    }
+
+    public void setIdProduto(String idProduto) {
+        this.idProduto = idProduto;
     }
 
     public String getCodReferencia() {
@@ -93,4 +106,17 @@ public class Inventario {
     public int hashCode() {
         return Objects.hash(codReferencia);
     }
+
+    @Override
+    public int compareTo(Object o) {
+        int compare = this.dataHoraMovimentacao.compareTo(((Inventario) o).dataHoraMovimentacao);
+        if (compare > 0) {
+            return -1;
+        } else if (compare < 0) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
 }

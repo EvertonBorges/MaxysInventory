@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -54,6 +55,8 @@ public class ProdutoMenuActivity extends AppCompatActivity {
     private final SimpleDateFormat formatadorData = new SimpleDateFormat("dd/MM/yyyy");
 
     private Empresa empresa;
+
+    public static ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +93,7 @@ public class ProdutoMenuActivity extends AppCompatActivity {
 
         btnImportar.setOnClickListener(v -> showFileChooser());
 
-        btnExportar.setOnClickListener(v -> exportarProdutos());
+        btnExportar.setOnClickListener(v -> exportar());
 
         btnGerenciar.setOnClickListener(v -> {
             Intent intent = new Intent(ProdutoMenuActivity.this, ManageProdutoActivity.class);
@@ -119,7 +122,7 @@ public class ProdutoMenuActivity extends AppCompatActivity {
         }
     }
 
-    private void exportarProdutos() {
+    private void exportar() {
         String nomeDiretorio = "Maxys Inventory";
         String diretorioApp = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + nomeDiretorio + "/";
         File diretorio = new File(diretorioApp);
@@ -135,15 +138,15 @@ public class ProdutoMenuActivity extends AppCompatActivity {
             if (!fileExt.exists()) {
                 // Cria o arquivo
                 if (fileExt.createNewFile()) {
-                    perquisarProdutos(fileExt);
+                    exportarProdutos(fileExt);
                 } else {
                     Util.AlertaInfo(ProdutoMenuActivity.this, "EXPORTAR ARQUIVO", "Falha ao criar o arquivo.");
                 }
             } else {
-                perquisarProdutos(fileExt);
+                exportarProdutos(fileExt);
             }
         } catch (IOException ex) {
-            Util.AlertaInfo(ProdutoMenuActivity.this, "EXPORTAR ARQUIVO", "Falha ao exportar os produtos.");
+            Util.AlertaInfo(ProdutoMenuActivity.this, "EXPORTAR ARQUIVO", "Falha ao exportarProdutos os produtos.");
         }
     }
 
@@ -160,7 +163,7 @@ public class ProdutoMenuActivity extends AppCompatActivity {
         Util.AlertaInfo(ProdutoMenuActivity.this,"EXPORTAR ARQUIVO","Arquivo exportado com sucesso.");
     }
 
-    private void perquisarProdutos(File fileExt) {
+    private void exportarProdutos(File fileExt) {
         Handler handler = new Handler();
 
         ProgressDialog progressDialog = Util.inicializaProgressDialog(ProdutoMenuActivity.this, "EXPORTAR", "Gerando arquivo...");
@@ -205,6 +208,7 @@ public class ProdutoMenuActivity extends AppCompatActivity {
                                                       Movimentacao movimentacao = snapshot1.getValue(Movimentacao.class);
 
                                                       Inventario inventario = inventarios.get(movimentacao.getIdProduto());
+                                                      inventario.setDataHoraMovimentacao(movimentacao.getDataHoraMovimentacao());
 
                                                       if (movimentacao.isAvariado()) {
                                                           inventario.addAvarias(movimentacao.getQtde());
@@ -212,17 +216,35 @@ public class ProdutoMenuActivity extends AppCompatActivity {
                                                           inventario.addSaldo(movimentacao.getQtde());
                                                       }
 
-                                                      handler.post(() -> progressDialog.incrementProgressBy(1));
+
                                                   }
 
                                                   StringBuilder conteudoArquivo = new StringBuilder();
                                                   int i = 0;
                                                   for (Inventario inventario: inventarios.values()) {
-                                                      String codReferencia = Util.insereNCaracteres(inventario.getCodReferencia(), "0", 13, true);
-                                                      String saldo = Util.insereZeros(inventario.getSaldo(), 7, 5).replaceAll("\\.", "");
-                                                      String avariados = Util.insereZeros(inventario.getAvariados(), 7, 5).replaceAll("\\.", "");
+                                                      String codReferencia = "";
+                                                      String codInterno = "";
 
-                                                      String linha = codReferencia + saldo + avariados;
+                                                      if (inventario.getCodReferencia().length() < 12) {
+                                                          codInterno = Util.insereNCaracteres(inventario.getCodReferencia(), "0", 6, true);
+                                                      } else {
+                                                          codReferencia = inventario.getCodReferencia();
+                                                      }
+
+                                                      Date date = new Date(inventario.getDataHoraMovimentacao());
+                                                      String data = Util.converteData(date);
+                                                      String hora = Util.converteHoraMinuto(date);
+                                                      String saldo = String.valueOf(Util.converteInteiro(inventario.getSaldo()));
+
+                                                      //String codReferencia = Util.insereNCaracteres(inventario.getCodReferencia(), "0", 13, true);
+                                                      //String avariados = Util.insereZeros(inventario.getAvariados(), 7, 5).replaceAll("\\.", "");
+
+                                                      String linha =
+                                                              data + ',' +
+                                                              hora + ',' +
+                                                              codReferencia + ',' +
+                                                              (saldo.equals("0") ? "" : saldo) + ',' +
+                                                              codInterno;
 
                                                       conteudoArquivo.append(linha);
                                                       i++;
@@ -230,6 +252,8 @@ public class ProdutoMenuActivity extends AppCompatActivity {
                                                       if (i < inventarios.size()) {
                                                           conteudoArquivo.append("\n");
                                                       }
+
+                                                      handler.post(() -> progressDialog.incrementProgressBy(1));
                                                   }
 
                                                   try {
@@ -240,7 +264,7 @@ public class ProdutoMenuActivity extends AppCompatActivity {
 
                                                       Util.AlertaInfo(ProdutoMenuActivity.this,
                                                               "EXPORTAR ARQUIVO",
-                                                              "Falha ao exportar o arquivo.");
+                                                              "Falha ao exportarProdutos o arquivo.");
                                                   }
                                               } else {
                                                   Util.finalizarProgressDialog(handler, progressDialog);
@@ -292,10 +316,19 @@ public class ProdutoMenuActivity extends AppCompatActivity {
                         StringBuilder builder = new StringBuilder();
                         final Integer[] qtdeErros = {0};
 
+                        Handler handler = new Handler();
+
+                        handler.post(() -> inicializaProgressDialog("IMPORTAÇÃO", "Importando produtos..."));
+
                         for (String linha: linhas) {
                             Produto produto = new Produto();
-                            produto.setCodReferencia(linha.substring(0, 13));
-                            produto.setDescricao(linha.substring(13));
+                            String[] line = linha.split(";");
+                            if (line.length >= 2) {
+                                produto.setCodReferencia(line[0].trim());
+                                produto.setDescricao(line[1].trim());
+                            } else if (line.length == 1) {
+                                produto.setCodReferencia(line[0].trim());
+                            }
 
                             reference.child("empresa_produtos")
                                      .child(empresa.getId())
@@ -309,10 +342,16 @@ public class ProdutoMenuActivity extends AppCompatActivity {
                                                           "\tDescrição: " + produto.getDescricao();
 
                                             builder.append(erro);
-                                        } else if (linha.equals(linhas.get(linhas.size() - 1))) { // última linha
-                                            if (qtdeErros[0] > 0) {
-                                                Util.AlertaInfo(ProdutoMenuActivity.this, "ERROS:\n\n", builder.toString());
-                                            }
+                                        }
+
+                                        if (linha.equals(linhas.get(linhas.size() - 1))) { // última linha
+                                            handler.post(() -> {
+                                                if (progressDialog.isShowing()) {
+                                                    progressDialog.dismiss();
+                                                }
+
+                                                Util.AlertaInfo(ProdutoMenuActivity.this, "IMPORTAÇÃO", (qtdeErros[0] == 0 ? "Produtos importados com sucesso." : "Erro ao importas or produtos:\n\n" + builder.toString()));
+                                            });
                                         }
                                      });
                         }
@@ -329,6 +368,18 @@ public class ProdutoMenuActivity extends AppCompatActivity {
     public void onOpenFragmentClicked(View view) {
         Intent intent = new Intent(this, FragmentActivity.class);
         startActivity(intent);
+    }
+
+    private void inicializaProgressDialog(String title, String message) {
+        if (progressDialog != null) {
+            if (progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
+        }
+
+        progressDialog = Util.inicializaProgressDialog(this, title, message);
+
+        progressDialog.show();
     }
 
 }

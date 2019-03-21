@@ -1,27 +1,38 @@
 package com.maxys.maxysinventory.secondaryActivities;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputLayout;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.appcompat.widget.AppCompatEditText;
+import androidx.appcompat.widget.AppCompatTextView;
+
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.adapter.ProdutoAdapter;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
+import com.maxys.maxysinventory.model.ComportamentoTelaProduto;
 import com.maxys.maxysinventory.model.Empresa;
+import com.maxys.maxysinventory.model.Inventario;
 import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.Produto;
 import com.maxys.maxysinventory.model.TipoRetornoIntent;
@@ -36,13 +47,12 @@ import java.util.Objects;
 
 public class ManageProdutoActivity extends AppCompatActivity {
 
-    private TextInputLayout textLayoutCodReferencia;
-    private TextInputLayout textLayoutDescricao;
-
     private AppCompatEditText edtCodReferencia;
     private AppCompatEditText edtDescricao;
+    private AppCompatEditText edtPesquisa;
 
-    private DatabaseReference databaseReference;
+    private Query query;
+    private ValueEventListener valueEventListener;
 
     private Empresa empresa;
     private String idUsuarioLogado;
@@ -51,6 +61,9 @@ public class ManageProdutoActivity extends AppCompatActivity {
 
     private ArrayAdapter adapter;
     private List<Produto> produtos;
+
+    private static Produto produtoOld;
+    private static ComportamentoTelaProduto comportamento;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,12 +76,20 @@ public class ManageProdutoActivity extends AppCompatActivity {
         idUsuarioLogado = preferencias.getIdUsuarioLogado();
         empresa = (Empresa) getIntent().getSerializableExtra("empresa");
 
+        TextInputLayout textLayoutCodReferencia = findViewById(R.id.ti_manage_produto_cod_ref);
+        TextInputLayout textLayoutDescricao = findViewById(R.id.ti_manage_produto_descricao);
         edtCodReferencia = findViewById(R.id.et_manage_produto_cod_ref);
         edtDescricao = findViewById(R.id.et_manage_produto_descricao);
+        edtPesquisa = findViewById(R.id.et_manage_produto_pesquisa);
+        AppCompatTextView tvProdutoQtde = findViewById(R.id.tv_manage_produto_qtde);
+        View divider = findViewById(R.id.divider4);
 
         ImageButton btnBarcode = findViewById(R.id.btn_manage_produto_barcode);
+
+        LinearLayout linearLayout = findViewById(R.id.ll_5);
         ImageButton btnLimpar = findViewById(R.id.btn_manage_produto_limpar);
         ImageButton btnSalvar = findViewById(R.id.btn_manage_produto_salvar);
+        ImageButton btnPesquisa = findViewById(R.id.ib_manage_produto_pesquisa);
 
         ListView lvProdutos = findViewById(R.id.lv_manage_produto);
         List<String> permissoes = new ArrayList<>();
@@ -82,33 +103,48 @@ public class ManageProdutoActivity extends AppCompatActivity {
         boolean permitirAdicionarProduto = permissoes.contains("actAdicionarProduto");
         boolean permitirAlterarProduto = permissoes.contains("actAlterarProduto");
 
-        adapter = new ProdutoAdapter(ManageProdutoActivity.this, produtos, empresa.getId(), permitirRemoverProduto);
+        adapter = new ProdutoAdapter(ManageProdutoActivity.this, produtos, empresa.getId(), permitirRemoverProduto, permitirAlterarProduto);
         lvProdutos.setAdapter(adapter);
 
-        databaseReference = ConfiguracaoFirebase.getFirebase();
+        boolean permitirEscritaCampos = permitirAdicionarProduto || permitirAlterarProduto;
 
-        databaseReference.child("empresa_produtos")
-                         .child(empresa.getId())
-                         .addValueEventListener(new ValueEventListener() {
-                             @Override
-                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                 produtos.clear();
+        int visibilidadeComponentes = permitirEscritaCampos ? View.VISIBLE: View.GONE;
 
-                                 if (dataSnapshot.getValue() != null) {
-                                     for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                                         Produto produto = snapshot.getValue(Produto.class);
-                                         produtos.add(produto);
-                                     }
-                                 }
+        textLayoutCodReferencia.setVisibility(visibilidadeComponentes);
+        textLayoutDescricao.setVisibility(visibilidadeComponentes);
+        linearLayout.setVisibility(visibilidadeComponentes);
+        btnBarcode.setVisibility(visibilidadeComponentes);
+        btnLimpar.setVisibility(visibilidadeComponentes);
+        btnSalvar.setVisibility(visibilidadeComponentes);
+        divider.setVisibility(visibilidadeComponentes);
 
-                                 adapter.notifyDataSetChanged();
-                             }
+        query = ConfiguracaoFirebase.getFirebase()
+                                    .child("empresa_produtos")
+                                    .child(empresa.getId());
 
-                             @Override
-                             public void onCancelled(@NonNull DatabaseError databaseError) {
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                produtos.clear();
 
-                             }
-                         });
+                if (dataSnapshot.getValue() != null) {
+                    for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                        Produto produto = snapshot.getValue(Produto.class);
+                        produtos.add(produto);
+                    }
+                }
+
+                String qtdeProdutos = "Total de produtos: " + produtos.size();
+                tvProdutoQtde.setText(qtdeProdutos);
+
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
 
         btnBarcode.setOnClickListener(v -> {
 
@@ -140,62 +176,268 @@ public class ManageProdutoActivity extends AppCompatActivity {
                 Util.AlertaInfo(ManageProdutoActivity.this, "ERRO CÓD. REF.", "Insira o cód de referência do produto.");
             } else if (produto.getDescricao().isEmpty()) {
                 Util.AlertaInfo(ManageProdutoActivity.this, "ERRO DESCRIÇÃO.", "Insira a descrição do produto.");
-            } else if (produto.getCodReferencia().length() < 8) {
-                Util.AlertaInfo(ManageProdutoActivity.this, "ERRO CÓD. REF.", "Cód. de referência de possuir pelo menos 8 números");
             } else {
-                DatabaseReference databaseReference = ConfiguracaoFirebase.getFirebase();
-                databaseReference.child("empresa_produtos")
-                                 .child(empresa.getId())
-                                 .orderByChild("codReferencia")
-                                 .equalTo(produto.getCodReferencia())
-                                 .limitToFirst(1)
-                                 .addListenerForSingleValueEvent(new ValueEventListener() {
-                                     @Override
-                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                         if (dataSnapshot.getValue() != null) {
-                                             AlertDialog.Builder alert = new AlertDialog.Builder(ManageProdutoActivity.this);
-                                             alert.setTitle("ALTERAR PRODUTO");
-                                             alert.setMessage("Deseja realmente alterar o produto?");
-                                             alert.setCancelable(true);
-                                             alert.setPositiveButton("Sim", (dialog, which) -> {
-                                                 for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                                                     snapshot.getRef()
-                                                             .setValue(produto)
-                                                             .addOnCompleteListener(task -> {
-                                                                 if (task.isSuccessful()) {
-                                                                     Util.AlertaInfo(ManageProdutoActivity.this, "PRODUTO ALTERADO", "Produto alterado com sucesso.");
-                                                                     Util.salvarLog(empresa.getId(), idUsuarioLogado, "Produto (" + snapshot.getKey() + ") alterado com sucesso.");
-                                                                     limparCampos();
-                                                                     dialog.dismiss();
-                                                                 } else {
-                                                                     Util.AlertaInfo(ManageProdutoActivity.this, "ERRO PRODUTO", "Erro ao alterar o produto.");
-                                                                     dialog.dismiss();
-                                                                 }
-                                                             });
-                                                 }
-                                             });
-                                             alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
-                                             alert.show();
-                                         } else {
-                                             databaseReference.child("empresa_produtos")
-                                                              .child(empresa.getId())
-                                                              .push().setValue(produto).addOnCompleteListener(command -> {
-                                                                  if (command.isSuccessful()) {
-                                                                      Util.AlertaInfo(ManageProdutoActivity.this, "PRODUTO CADASTRADO", "Produto cadastrado com sucesso.");
-                                                                      Util.salvarLog(empresa.getId(), idUsuarioLogado, "Produto (" + produto.getCodReferencia() + ") cadastrado com sucesso.");
-                                                                      limparCampos();
-                                                                  } else {
-                                                                      Util.AlertaInfo(ManageProdutoActivity.this, "ERRO PRODUTO", "Erro ao cadastrar o produto.");
-                                                                  }
-                                             });
-                                         }
-                                     }
+                if (comportamento.equals(ComportamentoTelaProduto.INSERT)) {
+                    DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
 
-                                     @Override
-                                     public void onCancelled(@NonNull DatabaseError databaseError) {
+                    reference.child("empresa_produtos")
+                        .child(empresa.getId())
+                        .orderByChild("codReferencia")
+                        .equalTo(produto.getCodReferencia())
+                        .limitToFirst(1)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.getValue() != null) {
+                                    AlertDialog.Builder alert = Util.Alerta(ManageProdutoActivity.this, "ALTERAR PRODUTO", "Deseja realmente alterar o produto?");
+                                    alert.setCancelable(true);
+                                    alert.setPositiveButton("Sim", (dialog, which) -> {
+                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                            snapshot.getRef()
+                                                    .setValue(produto)
+                                                    .addOnCompleteListener(task -> {
+                                                        if (task.isSuccessful()) {
+                                                            Util.AlertaInfo(ManageProdutoActivity.this, "PRODUTO ALTERADO", "Produto alterado com sucesso.");
+                                                            Util.salvarLog(empresa.getId(), idUsuarioLogado, "Produto (" + snapshot.getKey() + ") alterado com sucesso.");
+                                                            limparCampos();
+                                                            dialog.dismiss();
+                                                        } else {
+                                                            Util.AlertaInfo(ManageProdutoActivity.this, "ERRO PRODUTO", "Erro ao alterar o produto.");
+                                                            dialog.dismiss();
+                                                        }
+                                                    });
+                                        }
+                                    });
+                                    alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
+                                    alert.show();
+                                } else {
+                                    reference.child("empresa_produtos")
+                                            .child(empresa.getId())
+                                            .push().setValue(produto).addOnCompleteListener(command -> {
+                                        if (command.isSuccessful()) {
+                                            Util.AlertaInfo(ManageProdutoActivity.this, "PRODUTO CADASTRADO", "Produto cadastrado com sucesso.");
+                                            Util.salvarLog(empresa.getId(), idUsuarioLogado, "Produto (" + produto.getCodReferencia() + ") cadastrado com sucesso.");
+                                            limparCampos();
+                                        } else {
+                                            Util.AlertaInfo(ManageProdutoActivity.this, "ERRO PRODUTO", "Erro ao cadastrar o produto.");
+                                        }
+                                    });
+                                }
+                            }
 
-                                     }
-                                 });
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+
+                        });
+                } else if (comportamento.equals(ComportamentoTelaProduto.EDIT)) {
+                    DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
+
+                    reference.child("empresa_produtos")
+                        .child(empresa.getId())
+                        .orderByChild("codReferencia")
+                        .equalTo(produto.getCodReferencia())
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                // Produto com o novo cód de referências já existe
+                                if (dataSnapshot.getValue() != null) {
+                                    Util.AlertaInfo(ManageProdutoActivity.this,"PRODUTO JÁ EXISTE", "Por favor verificar o produto, já existe outro produto com o mesmo código.");
+                                } else {
+                                    reference.child("inventario")
+                                        .child(empresa.getId())
+                                        .orderByChild("codReferencia")
+                                        .equalTo(produtoOld.getCodReferencia())
+                                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                // Verifica se produto possui inventário.
+                                                if (dataSnapshot.getValue() != null) {
+                                                    for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                                        Inventario inventario = snapshot.getValue(Inventario.class);
+
+                                                        inventario.setCodReferencia(produto.getCodReferencia());
+                                                        inventario.setDescricao(produto.getDescricao());
+
+                                                        snapshot.getRef().setValue(inventario);
+                                                    }
+                                                }
+
+                                                reference.child("empresa_produtos")
+                                                    .child(empresa.getId())
+                                                    .orderByChild("codReferencia")
+                                                    .equalTo(produtoOld.getCodReferencia())
+                                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                            if (dataSnapshot.getValue() != null) {
+                                                                for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                                                    snapshot.getRef().setValue(produto).addOnCompleteListener(task -> {
+                                                                        if (task.isSuccessful()) {
+                                                                            Util.salvarLog(empresa.getId(), idUsuarioLogado, "Produto '" + snapshot.getKey() + "' atualizado com sucesso!");
+                                                                            Util.AlertaInfo(ManageProdutoActivity.this, "PRODUTO ATUALIZADO", "Produto atualizado com sucesso!");
+                                                                            limparCampos();
+                                                                        } else {
+                                                                            Util.salvarLog(empresa.getId(), idUsuarioLogado, "Falha ao atualizar o produto '" + snapshot.getKey() + "'");
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                        }
+                                                    });
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                            }
+                                        });
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+
+                    reference.child("empresa_movimentacoes")
+                        .child(empresa.getId())
+                        .orderByChild("codReferencia")
+                        .equalTo(produto.getCodReferencia())
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.getValue() != null) {
+
+                                } else {
+
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                }
+            }
+        });
+
+        btnPesquisa.setOnClickListener(v -> {
+            String textoPesquisa = edtPesquisa.getText().toString();
+
+            if (textoPesquisa.isEmpty()) {
+                query.removeEventListener(valueEventListener);
+
+                query = ConfiguracaoFirebase.getFirebase()
+                                            .child("empresa_produtos")
+                                            .child(empresa.getId());
+
+                valueEventListener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        produtos.clear();
+
+                        if (dataSnapshot.getValue() != null) {
+                            for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                Produto produto = snapshot.getValue(Produto.class);
+                                produtos.add(produto);
+                            }
+                        }
+
+                        String qtdeProdutos = "Total de produtos: " + produtos.size();
+                        tvProdutoQtde.setText(qtdeProdutos);
+
+                        adapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                };
+
+                query.addValueEventListener(valueEventListener);
+            } else {
+                query.removeEventListener(valueEventListener);
+
+                query = ConfiguracaoFirebase.getFirebase()
+                                            .child("empresa_produtos")
+                                            .child(empresa.getId())
+                                            .orderByChild("descricao")
+                                            .startAt(textoPesquisa)
+                                            .endAt(textoPesquisa + "\uf8ff");
+
+                valueEventListener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        produtos.clear();
+
+                        if (dataSnapshot.getValue() != null) {
+                            for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                Produto produto = snapshot.getValue(Produto.class);
+                                produtos.add(produto);
+                            }
+
+                            String qtdeProdutos = "Total de produtos: " + produtos.size();
+                            tvProdutoQtde.setText(qtdeProdutos);
+                        } else {
+                            query.removeEventListener(valueEventListener);
+
+                            query = ConfiguracaoFirebase.getFirebase()
+                                                        .child("empresa_produtos")
+                                                        .child(empresa.getId())
+                                                        .orderByChild("codReferencia")
+                                                        .startAt(textoPesquisa)
+                                                        .endAt(textoPesquisa + "\uf8ff");
+
+                            valueEventListener = new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    produtos.clear();
+
+                                    if (dataSnapshot.getValue() != null) {
+                                        for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                            Produto produto = snapshot.getValue(Produto.class);
+                                            produtos.add(produto);
+                                        }
+
+                                        String qtdeProdutos = "Total de produtos: " + produtos.size();
+                                        tvProdutoQtde.setText(qtdeProdutos);
+                                    } else {
+                                        String qtdeProdutos = "Total de produtos: " + 0;
+                                        tvProdutoQtde.setText(qtdeProdutos);
+                                    }
+
+                                    adapter.notifyDataSetChanged();
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            };
+
+                            query.addValueEventListener(valueEventListener);
+                        }
+
+                        adapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                };
+
+                query.addValueEventListener(valueEventListener);
             }
         });
     }
@@ -233,6 +475,26 @@ public class ManageProdutoActivity extends AppCompatActivity {
     private void limparCampos() {
         edtCodReferencia.setText("");
         edtDescricao.setText("");
+        comportamento = ComportamentoTelaProduto.INSERT;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        query.addValueEventListener(valueEventListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        query.removeEventListener(valueEventListener);
+    }
+
+    public static void setComportamento(ComportamentoTelaProduto comportamento, Produto produtoOld) {
+        ManageProdutoActivity.comportamento = comportamento;
+        ManageProdutoActivity.produtoOld = produtoOld;
     }
 
 }

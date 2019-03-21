@@ -2,7 +2,9 @@ package com.maxys.maxysinventory.adapter;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,14 +21,20 @@ import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Contribuidor;
 import com.maxys.maxysinventory.model.LogAcoes;
+import com.maxys.maxysinventory.model.Permissao;
+import com.maxys.maxysinventory.model.TipoSelecaoPermissao;
+import com.maxys.maxysinventory.secondaryActivities.EmpresaActivity;
+import com.maxys.maxysinventory.secondaryActivities.PermissaoActivity;
 import com.maxys.maxysinventory.util.Base64Custom;
 import com.maxys.maxysinventory.util.PreferenciasShared;
 import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class ContribuidorAdapter extends ArrayAdapter<Contribuidor> {
 
@@ -63,6 +71,32 @@ public class ContribuidorAdapter extends ArrayAdapter<Contribuidor> {
                 PreferenciasStatic preferencias = PreferenciasStatic.getInstance();
                 String idUsuarioLogado = preferencias.getIdUsuarioLogado();
 
+                List<String> permissoes = new ArrayList<>();
+                for (Permissao permissao: preferencias.getContribuidor().getPermissoes()) {
+                    if (!permissoes.contains(permissao.getNome())) {
+                        permissoes.add(permissao.getNome());
+                    }
+                }
+                for (Permissao permissao: preferencias.getUsuario().getPermissoes()) {
+                    if (!permissoes.contains(permissao.getNome())) {
+                        permissoes.add(permissao.getNome());
+                    }
+                }
+
+                boolean permitirPermissoesEmpresa = permissoes.contains("actPermissoesEmpresa");
+                boolean permitirPermissoesGerais = permissoes.contains("actPermissoesGerais");
+
+                view.setOnClickListener(v -> {
+                    if (permitirPermissoesEmpresa || permitirPermissoesGerais) {
+                        Intent intent = new Intent(context, PermissaoActivity.class);
+                        intent.putExtra("idContribuidorSelecionado", Base64Custom.codificarBase64(contribuidor.getEmail()));
+                        intent.putExtra("tipoSelecaoPermissao", TipoSelecaoPermissao.EMPRESA.toString());
+                        intent.putExtra("contribuidor", contribuidor);
+                        intent.putExtra("idEmpresa", idEmpresa);
+                        context.startActivity(intent);
+                    }
+                });
+
                 ibRemover.setOnClickListener(v -> {
                     DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
 
@@ -73,43 +107,24 @@ public class ContribuidorAdapter extends ArrayAdapter<Contribuidor> {
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if (dataSnapshot.getValue() != null) {
                                         if (dataSnapshot.getChildrenCount() <= 1) {
-                                            AlertDialog.Builder alert = new AlertDialog.Builder(context);
-                                            alert.setTitle("EMPRESA");
-                                            alert.setMessage("Você é o último contribuidor desta empresa, deseja realmente ser removido?\nAo fazer isso a empresa será excluída.");
-                                            alert.setCancelable(true);
-                                            alert.setPositiveButton("Sim", (dialog, which) -> {
+                                            Util.Alerta(context, "EMPRESA", "Você é o último contribuidor desta empresa, deseja realmente ser removido?\nAo fazer isso a empresa será excluída.", (dialog, which) -> {
                                                 removerContribuidores(reference, idUsuarioLogado, contribuidor);
                                                 removerEmpresa(reference, idUsuarioLogado, idEmpresa);
 
-                                                // fechar tela
                                                 ((Activity) context).finish();
-                                            });
-                                            alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
-                                            alert.show();
+                                            }).setNegativeButton("Não", (dialog, which) -> dialog.dismiss()).show();
                                         } else {
                                             if (idUsuarioLogado.equals(Base64Custom.codificarBase64(contribuidor.getEmail()))) {
-                                                AlertDialog.Builder alert = new AlertDialog.Builder(context);
-                                                alert.setTitle("EMPRESA");
-                                                alert.setMessage("Deseja realmente sair da empresa?");
-                                                alert.setCancelable(true);
-                                                alert.setPositiveButton("Sim", (dialog, which) -> {
+
+                                                Util.Alerta(context, "EMPRESA", "Deseja realmente sair da empresa?", (dialog, which) -> {
                                                     removerContribuidores(reference, idUsuarioLogado, contribuidor);
 
-                                                    // fechar tela
                                                     ((Activity) context).finish();
-                                                });
-                                                alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
-                                                alert.show();
+                                                }).setNegativeButton("Não", (dialog, which) -> dialog.dismiss()).show();
                                             } else {
-                                                AlertDialog.Builder alert = new AlertDialog.Builder(context);
-                                                alert.setTitle("EMPRESA");
-                                                alert.setMessage("Dseja realmente remover o contribuidor?");
-                                                alert.setCancelable(true);
-                                                alert.setPositiveButton("Sim", (dialog, which) -> {
+                                                Util.Alerta(context, "EMPRESA", "Deseja realmente remover o contribuidor?", (dialog, which) -> {
                                                     removerContribuidores(reference, idUsuarioLogado, contribuidor);
-                                                });
-                                                alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
-                                                alert.show();
+                                                }).setNegativeButton("Não", (dialog, which) -> dialog.dismiss()).show();
                                             }
                                         }
                                     }

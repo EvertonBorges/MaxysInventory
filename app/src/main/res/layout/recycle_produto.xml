@@ -51,8 +51,9 @@
             android:layout_height="match_parent"
             android:layout_margin="5dp"
             android:layout_weight="0"
-            android:background="@android:drawable/screen_background_light_transparent"
+            android:background="?android:attr/selectableItemBackground"
             android:padding="5dp"
+            android:visibility="gone"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_action_edit" />
 
@@ -62,9 +63,10 @@
             android:layout_height="match_parent"
             android:layout_margin="5dp"
             android:layout_weight="0"
-            android:background="@android:drawable/screen_background_light_transparent"
+            android:background="?android:attr/selectableItemBackground"
             android:padding="5dp"
             android:scaleType="fitCenter"
+            android:visibility="gone"
             app:srcCompat="@drawable/ic_delete" />
     </LinearLayout>
 </LinearLayout>

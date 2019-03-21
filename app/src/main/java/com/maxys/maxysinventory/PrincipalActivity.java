@@ -16,10 +16,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.TipoSelecaoEmpresa;
+import com.maxys.maxysinventory.model.TipoSelecaoPermissao;
 import com.maxys.maxysinventory.model.TipoTransicaoEmpresa;
 import com.maxys.maxysinventory.model.Usuario;
 import com.maxys.maxysinventory.secondaryActivities.LoginActivity;
+import com.maxys.maxysinventory.secondaryActivities.PermissaoActivity;
 import com.maxys.maxysinventory.secondaryActivities.SelecionaEmpresaActivity;
+import com.maxys.maxysinventory.secondaryActivities.UsuarioActivity;
 import com.maxys.maxysinventory.util.PreferenciasStatic;
 
 import java.text.SimpleDateFormat;
@@ -64,8 +67,10 @@ public class PrincipalActivity extends AppCompatActivity {
         }
 
         boolean permitirVisualizarEmpresa = permissoes.contains("actMenuEmpresa");
+        boolean permitirVisualizarPermissoesGerais = permissoes.contains("actPermissoesGerais");
 
         btnEmpresa.setVisibility(permitirVisualizarEmpresa ? View.VISIBLE : View.GONE);
+        btnPermissoes.setVisibility(permitirVisualizarPermissoesGerais ? View.VISIBLE : View.GONE);
 
         String data = "Data: " + formatadorData.format(Calendar.getInstance().getTime());
         txtData.setText(data);
@@ -73,8 +78,9 @@ public class PrincipalActivity extends AppCompatActivity {
         firebaseAuth = ConfiguracaoFirebase.getFirebaseAuth();
 
         btnPermissoes.setOnClickListener(v -> {
+            Intent intent = new Intent(PrincipalActivity.this, UsuarioActivity.class);
 
-
+            startActivity(intent);
         });
 
         btnEmpresa.setOnClickListener(v -> {

@@ -111,7 +111,7 @@ public class SelecionaEmpresaActivity extends AppCompatActivity {
     private void abrirProximaTela(Empresa empresa) {
         switch (tipoTransicao) {
             case GERENCIAR_INVENTARIO:
-                abrirProximaTela(empresa, MovimentacaoActivity.class);
+                abrirProximaTela(empresa, InventarioActivity.class);
                 break;
             case GERENCIAR_PRODUTO:
                 abrirProximaTela(empresa, ProdutoMenuActivity.class);

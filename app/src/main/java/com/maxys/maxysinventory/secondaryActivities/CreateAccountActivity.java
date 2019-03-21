@@ -1,17 +1,13 @@
 package com.maxys.maxysinventory.secondaryActivities;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
-import com.google.android.material.textfield.TextInputLayout;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import androidx.appcompat.widget.AppCompatEditText;
-
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.Button;
 
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
@@ -19,13 +15,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.config.Nomes;
-import com.maxys.maxysinventory.model.LogAcoes;
 import com.maxys.maxysinventory.model.Usuario;
 import com.maxys.maxysinventory.util.Base64Custom;
 import com.maxys.maxysinventory.util.Util;
 
-import java.util.Calendar;
 import java.util.Objects;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatEditText;
 
 public class CreateAccountActivity extends AppCompatActivity {
 
@@ -124,6 +121,8 @@ public class CreateAccountActivity extends AppCompatActivity {
                 } else if (s.toString().length() < 6) {
                     textLayoutSenha.setErrorEnabled(true);
                     textLayoutSenha.setError("Senha deve ter ao menos 6 caracteres.");
+                } else if (s.toString().equals(edtConfirmSenha.getText().toString())) {
+                    textLayoutConfirmSenha.setErrorEnabled(false);
                 } else {
                     textLayoutSenha.setErrorEnabled(false);
                 }
@@ -159,18 +158,6 @@ public class CreateAccountActivity extends AppCompatActivity {
     }
 
     private void CriarConta() {
-        handler.post(() -> {
-            if (progressDialog != null) {
-                if (progressDialog.isShowing()) {
-                    progressDialog.dismiss();
-                }
-            }
-
-            progressDialog = Util.inicializaProgressDialog(CreateAccountActivity.this, "AGUARDE", "Realizando a criação da conta...");
-
-            progressDialog.show();
-        });
-
         if (textLayoutNome.isErrorEnabled() || textLayoutLogin.isErrorEnabled() || textLayoutSenha.isErrorEnabled() || textLayoutConfirmSenha.isErrorEnabled()) {
             if (textLayoutNome.isErrorEnabled()) {
                 Util.AlertaInfo(this, "ERRO - NOME", "Verifique o nome");
@@ -186,6 +173,18 @@ public class CreateAccountActivity extends AppCompatActivity {
                 edtConfirmSenha.requestFocus();
             }
         } else {
+            handler.post(() -> {
+                if (progressDialog != null) {
+                    if (progressDialog.isShowing()) {
+                        progressDialog.dismiss();
+                    }
+                }
+
+                progressDialog = Util.inicializaProgressDialog(CreateAccountActivity.this, "AGUARDE", "Realizando a criação da conta...");
+
+                progressDialog.show();
+            });
+
             FirebaseAuth firebaseAuth = ConfiguracaoFirebase.getFirebaseAuth();
 
             Usuario usuario = new Usuario();
@@ -212,13 +211,13 @@ public class CreateAccountActivity extends AppCompatActivity {
                                 }
                             });
 
-                            Util.AlertaInfo(this, "SUCESSO", "Usuário criado com sucesso.").setOnDismissListener(dialog -> {
+                            Util.Alerta(this, "SUCESSO", "Usuário criado com sucesso.").setOnDismissListener(dialog -> {
                                 if (firebaseAuth.getCurrentUser() != null) {
                                     firebaseAuth.signOut();
                                 }
 
                                 finish();
-                            });
+                            }).show();
                         } else {
                             handler.post(() -> {
                                 if (progressDialog.isShowing()) {

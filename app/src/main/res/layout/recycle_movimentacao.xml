@@ -1,100 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:layout_height="wrap_content">
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="16dp">
 
-        <TextView
-            android:id="@+id/tv_item_movimentacao_data_hora"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:paddingLeft="16dp"
-            android:paddingTop="2dp"
-            android:paddingRight="16dp"
-            android:text="07/03/2019 - 17:41:12"
-            android:textSize="12sp" />
+            android:orientation="vertical"
+            android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/tv_item_movimentacao_produto"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:maxLines="2"
-            android:paddingLeft="16dp"
-            android:paddingTop="6dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="12dp"
-            android:text="0000000000002 - HP Laserjet 6970"
-            app:lineHeight="20dp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="0dp"
-        android:layout_weight="0"
-        android:orientation="vertical"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <TextView
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_movimentacao_data_hora"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center_vertical|end"
-                android:padding="6dp"
-                android:text="Saldo:"
-                android:textColor="@android:color/holo_blue_dark" />
+                android:maxLines="1"
+                android:text="Data: 15/03/2019 08:03:06"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="14sp" />
 
-            <TextView
-                android:id="@+id/tv_item_movimentacao_saldo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:padding="6dp"
-                android:text="159"
-                android:textColor="@android:color/holo_blue_dark" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <TextView
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_movimentacao_usuario_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center_vertical|end"
-                android:padding="6dp"
-                android:text="Avariados:"
-                android:textColor="@android:color/holo_red_light" />
+                android:layout_marginTop="4dp"
+                android:gravity="start|top"
+                android:maxLines="1"
+                android:text="e-mail usuário"
+                android:textColor="@color/accent"
+                android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/tv_item_movimentacao_avariado"
-                android:layout_width="wrap_content"
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_movimentacao_usuario_nome"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:padding="6dp"
-                android:text="953"
-                android:textColor="@android:color/holo_red_light" />
+                android:gravity="start|top"
+                android:maxLines="1"
+                android:text="e-mail usuário"
+                android:textColor="@android:color/black"
+                android:textSize="18sp" />
+
         </LinearLayout>
 
-    </LinearLayout>
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tv_movimentacao_qtde"
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="28sp"
+            android:layout_weight="0"/>
 
-</LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</RelativeLayout>

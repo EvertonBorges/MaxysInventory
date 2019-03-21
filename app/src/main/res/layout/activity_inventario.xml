@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:visibility="visible"
-    tools:context=".secondaryActivities.MovimentacaoActivity">
+    tools:context=".secondaryActivities.InventarioActivity">
 
     <ToggleButton
         android:id="@+id/tb_movimentacao_estado_mercadoria"
@@ -20,10 +20,10 @@
         android:checked="true"
         android:textOff="@string/toggleOff"
         android:textOn="@string/toggleOn"
-        android:textSize="18dp"
+        android:textSize="18sp"
         android:layout_alignParentTop="true"/>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/ll_6"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,17 +32,17 @@
         android:orientation="horizontal"
         android:gravity="bottom|start">
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="0"
             android:text="@string/lblQuantidade"
-            android:textSize="20dp"
+            android:textSize="20sp"
             android:paddingBottom="8dp"
             android:gravity="bottom"/>
 
-        <EditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/et_movimentacao_qtde"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -50,7 +50,7 @@
             android:gravity="bottom"
             android:inputType="numberDecimal" />
 
-        <CheckBox
+        <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/chkAutoBarCode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -58,9 +58,9 @@
             android:text="@string/autoBarCode"
             android:textAllCaps="false"
             android:textSize="18sp" />
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/ll_7"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -71,23 +71,23 @@
         android:layout_marginRight="16dp"
         android:orientation="horizontal">
 
-        <EditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/et_movimentacao_cod_referencia"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:inputType="number" />
 
-        <ImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/ib_movimentacao_barcode"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:background="@color/transparent"
+            android:background="?android:attr/selectableItemBackground"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_action_barcode_1" />
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/bt_movimentacao_enviar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -117,19 +117,35 @@
         android:divider="@color/divider"
         android:dividerHeight="1dp"
         android:layout_below="@id/divider"
-        android:layout_above="@id/et_movimentacao_pesquisa_produto"/>
+        android:layout_above="@id/ll_pesquisa"/>
 
-    <EditText
-        android:id="@+id/et_movimentacao_pesquisa_produto"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/ll_pesquisa"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
-        android:hint="Pesquisar Produto"
-        android:inputType="textPersonName" />
+        android:layout_alignParentBottom="true">
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/et_movimentacao_pesquisa_produto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:hint="Pesquisar Produto"
+            android:inputType="textCapCharacters"
+            android:layout_weight="1"/>
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/ib_movimentacao_pesquisa_produto"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:src="@drawable/ic_search_black_24dp"/>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 </RelativeLayout>

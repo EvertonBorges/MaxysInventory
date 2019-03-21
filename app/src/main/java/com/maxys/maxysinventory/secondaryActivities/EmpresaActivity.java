@@ -23,6 +23,7 @@ import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Contribuidor;
 import com.maxys.maxysinventory.model.Empresa;
 import com.maxys.maxysinventory.model.LogAcoes;
+import com.maxys.maxysinventory.model.TipoSelecaoPermissao;
 import com.maxys.maxysinventory.model.Usuario;
 import com.maxys.maxysinventory.util.Base64Custom;
 import com.maxys.maxysinventory.util.PreferenciasStatic;
@@ -117,8 +118,8 @@ public class EmpresaActivity extends AppCompatActivity {
         lvContribuidores.setAdapter(adapter);
 
         databaseReference = ConfiguracaoFirebase.getFirebase()
-                                                                  .child("empresa_contribuidores")
-                                                                  .child(empresa.getId());
+                                                .child("empresa_contribuidores")
+                                                .child(empresa.getId());
 
         valueEventListener = new ValueEventListener() {
             @Override
@@ -201,17 +202,26 @@ public class EmpresaActivity extends AppCompatActivity {
             } else {
                 empresa.setNome(nomeEmpresa);
                 DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
-                reference.child("empresa").child(empresa.getId())
-                        .setValue(empresa).addOnCompleteListener(command -> {
+                reference.child("empresa")
+                         .child(empresa.getId())
+                         .setValue(empresa)
+                         .addOnCompleteListener(command -> {
                     if (command.isSuccessful()) {
+
                         Util.salvarLog(empresa.getId(), idUsuarioLogado, "Informações atualizadas para a empresa (" + empresa.getId() + ").");
 
-                        reference.child("contribuidor_empresas").addListenerForSingleValueEvent(new ValueEventListener() {
+                        reference.child("contribuidor_empresas")
+                                 .orderByChild(empresa.getId() + "/id")
+                                 .equalTo(empresa.getId())
+                                 .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 if (dataSnapshot.getValue() != null) {
                                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                        snapshot.getRef().child(empresa.getId()).setValue(empresa).addOnCompleteListener(command1 -> {
+                                        snapshot.getRef()
+                                                .child(empresa.getId())
+                                                .setValue(empresa)
+                                                .addOnCompleteListener(command1 -> {
                                             if (command1.isSuccessful()) {
                                                 Util.salvarLog(empresa.getId(), idUsuarioLogado, "Informações da empresa atualizadas, para o contribuidor '" + snapshot.getKey() + "'.");
                                             } else {
@@ -219,6 +229,9 @@ public class EmpresaActivity extends AppCompatActivity {
                                             }
                                         });
                                     }
+                                    Util.AlertaInfo(EmpresaActivity.this, "EMPRESA ATUALIZADA", "Empresa atualizada com sucesso.", (dialog, which) -> {
+                                        finish();
+                                    });
                                 }
                             }
 
@@ -227,14 +240,22 @@ public class EmpresaActivity extends AppCompatActivity {
 
                             }
                         });
-
-                        Util.AlertaInfo(EmpresaActivity.this, "EMPRESA ATUALIZADA", "Empresa atualizada com sucesso.");
-                        finish();
                     } else {
                         Util.AlertaInfo(EmpresaActivity.this, "ERRO", "Erro ao atualizar a empresa.");
                     }
                 });
             }
+        });
+
+        lvContribuidores.setOnItemClickListener((parent, view, position, id) -> {
+            Contribuidor contribuidor = contribuidores.get(position);
+
+            Intent intent = new Intent(EmpresaActivity.this, PermissaoActivity.class);
+            intent.putExtra("idContribuidorSelecionado", Base64Custom.codificarBase64(contribuidor.getEmail()));
+            intent.putExtra("tipoSelecaoPermissao", TipoSelecaoPermissao.EMPRESA.toString());
+            intent.putExtra("contribuidor", contribuidor);
+            intent.putExtra("empresa", empresa);
+            startActivity(intent);
         });
     }
 

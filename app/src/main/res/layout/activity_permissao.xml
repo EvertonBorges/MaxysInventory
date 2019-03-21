@@ -3,12 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".PermissaoActivity">
+    tools:context=".secondaryActivities.PermissaoActivity">
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tv_permissao_titulo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Permissões"
         android:textSize="24sp"
         android:gravity="center"/>
 
@@ -16,13 +18,18 @@
         android:id="@+id/lv_permissoes"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
+        android:layout_margin="16dp"
         android:layout_below="@id/tv_permissao_titulo"
-        android:layout_alignParentBottom="true" />
+        android:layout_above="@id/bt_permissao_salvar"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/bt_permissao_salvar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_alignParentBottom="true"
+        android:text="Salvar"
+        android:textSize="20sp"
+        style="@style/RaisedButton" />
 
 </RelativeLayout>

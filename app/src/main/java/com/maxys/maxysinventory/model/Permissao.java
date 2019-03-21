@@ -2,11 +2,12 @@ package com.maxys.maxysinventory.model;
 
 import android.os.Build;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import androidx.annotation.RequiresApi;
 
-public class Permissao {
+public class Permissao implements Serializable {
 
     private String nome;
     private String descricao;
@@ -46,5 +47,10 @@ public class Permissao {
     @Override
     public int hashCode() {
         return Objects.hash(nome);
+    }
+
+    @Override
+    public String toString() {
+        return nome;
     }
 }

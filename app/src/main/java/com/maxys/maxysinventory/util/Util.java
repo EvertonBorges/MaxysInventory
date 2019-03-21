@@ -1,6 +1,6 @@
 package com.maxys.maxysinventory.util;
 
-import android.app.AlertDialog;
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,18 +8,26 @@ import android.os.Handler;
 
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.model.LogAcoes;
-import com.maxys.maxysinventory.model.Movimentacao;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
+import androidx.appcompat.app.AlertDialog;
+
 public class Util {
+
+    @SuppressLint("SimpleDateFormat")
+    private static final SimpleDateFormat formatadorData = new SimpleDateFormat("dd/MM/yyyy");
+    @SuppressLint("SimpleDateFormat")
+    private static final SimpleDateFormat formatadorHoraMinuto = new SimpleDateFormat("HH:mm");
+    @SuppressLint("SimpleDateFormat")
+    private static final SimpleDateFormat formatadorHoraCompleta = new SimpleDateFormat("HH:mm:ss");
 
     public static ProgressDialog inicializaProgressDialog(Context context, String title, String message) {
         ProgressDialog progressDialog = new ProgressDialog(context);
@@ -40,15 +48,35 @@ public class Util {
         }
     }
 
-    public static AlertDialog AlertaInfo(Context context, String title, String message) {
+    public static AlertDialog.Builder AlertaInfo(Context context, String title, String message) {
         return AlertaInfo(context, title, message, null);
     }
 
-    public static AlertDialog AlertaInfo(Context context, String title, String message, DialogInterface.OnClickListener listener) {
-        return new AlertDialog.Builder(context).setTitle(title).setMessage(message).
-                setPositiveButton("OK", listener != null ? listener : (dialog, which) -> dialog.dismiss()).show();
-        //alert.setView();
-        //alert.setIcon();
+    public static AlertDialog.Builder AlertaInfo(Context context, String title, String message, DialogInterface.OnClickListener listener) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                                                     .setTitle(title)
+                                                     .setMessage(message)
+                                                     .setCancelable(true)
+                                                     //.setView()
+                                                     //.setIcon()
+                                                     .setPositiveButton("OK", listener != null ? listener : (dialog, which) -> dialog.dismiss());
+        builder.show();
+
+        return builder;
+    }
+
+    public static AlertDialog.Builder Alerta(Context context, String title, String message) {
+        return Alerta(context, title, message, null);
+    }
+
+    public static AlertDialog.Builder Alerta(Context context, String title, String message, DialogInterface.OnClickListener listener) {
+        return new AlertDialog.Builder(context)
+                              .setTitle(title)
+                              .setMessage(message)
+                              .setCancelable(true)
+                              //.setView()
+                              //.setIcon()
+                              .setPositiveButton("OK", listener != null ? listener : (dialog, which) -> dialog.dismiss());
     }
 
     public static List<String> readFile (String path){
@@ -80,15 +108,15 @@ public class Util {
         logAcoes = null;
     }
 
-    public static String insereNCaracteres(String texto, String caracter, int qtdeCaracteres, boolean esquerda) {
+    public static String insereNCaracteres(String texto, String caracter, int tamanhoString, boolean esquerda) {
         String retorno = "";
 
         // Quantidade 0 (zero) preserva a string passada.
-        if (qtdeCaracteres == 0) {
+        if (tamanhoString == 0) {
             retorno = texto;
         } else {
-            if (texto.length() < qtdeCaracteres) {
-                int qtde = qtdeCaracteres - texto.length();
+            if (texto.length() < tamanhoString) {
+                int qtde = tamanhoString - texto.length();
                 StringBuilder caracterPreenchimento = new StringBuilder();
                 for (int i = 0; i < qtde; i++) {
                     caracterPreenchimento.insert(0, caracter);
@@ -100,7 +128,7 @@ public class Util {
                     retorno = texto + caracterPreenchimento;
                 }
             } else {
-                retorno = texto.substring(0, qtdeCaracteres);
+                retorno = texto.substring(0, tamanhoString);
             }
         }
 
@@ -125,6 +153,40 @@ public class Util {
         }
 
         return retorno;
+    }
+
+    public static int converteInteiro(float numero) {
+        return (int) numero;
+    }
+
+    public static int converteInteiro(double numero) {
+        return (int) numero;
+    }
+
+    public static int converteInteiro(String numero) {
+        return Integer.parseInt(numero);
+    }
+
+    public static String removerZerosEsquerda(String texto) {
+        String retorno = texto;
+
+        while (retorno.substring(0, 1).equals("0")) {
+            retorno = retorno.substring(1);
+        }
+
+        return retorno;
+    }
+
+    public static String converteData(Date date) {
+        return formatadorData.format(date);
+    }
+
+    public static String converteHoraMinuto(Date date) {
+        return formatadorHoraMinuto.format(date);
+    }
+
+    public static String converteHoraCompleta(Date date) {
+        return formatadorHoraCompleta.format(date);
     }
 
 }

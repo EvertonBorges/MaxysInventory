@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginLeft="24dp"
+        android:visibility="gone"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
         android:layout_marginRight="24dp"
@@ -35,6 +36,7 @@
         android:layout_marginLeft="24dp"
         android:layout_marginTop="16dp"
         android:minWidth="150dp"
+        android:visibility="gone"
         android:layout_below="@+id/ti_manage_produto_descricao"
         tools:ignore="MissingConstraints">
 
@@ -53,7 +55,8 @@
         android:layout_height="60dp"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:background="@android:drawable/screen_background_light_transparent"
+        android:visibility="gone"
+        android:background="?android:attr/selectableItemBackground"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_action_barcode_1"
         android:layout_toEndOf="@id/ti_manage_produto_cod_ref"
@@ -69,6 +72,7 @@
         android:orientation="horizontal"
         android:paddingLeft="24dp"
         android:paddingRight="24dp"
+        android:visibility="gone"
         android:layout_below="@+id/ti_manage_produto_cod_ref">
 
         <ImageButton
@@ -77,8 +81,9 @@
             android:layout_height="50dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
+            android:visibility="gone"
             android:layout_weight="0"
-            android:background="@android:drawable/screen_background_light_transparent"
+            android:background="?android:attr/selectableItemBackground"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_clear" />
 
@@ -89,7 +94,8 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:layout_weight="0"
-            android:background="@android:drawable/screen_background_light_transparent"
+            android:visibility="gone"
+            android:background="?android:attr/selectableItemBackground"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_action_save" />
     </LinearLayout>
@@ -97,19 +103,77 @@
     <View
         android:id="@+id/divider4"
         android:layout_width="match_parent"
+        android:visibility="gone"
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
         android:background="@color/primary"
         android:layout_below="@+id/ll_5" />
 
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/ll_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_below="@id/divider4">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/ti_manage_produto_pesquisa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="150dp"
+            android:layout_weight="1"
+            android:layout_below="@+id/ti_manage_produto_descricao"
+            tools:ignore="MissingConstraints">
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/et_manage_produto_pesquisa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/text_pesquisar"
+                android:inputType="textCapCharacters" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/ib_manage_produto_pesquisa"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:src="@drawable/ic_search_black_24dp"/>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
     <ListView
         android:id="@+id/lv_manage_produto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="16dp"
-        android:layout_below="@+id/divider4"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_below="@+id/ll_2"
+        android:layout_above="@id/tv_manage_produto_qtde"
         android:divider="@color/primary"
-        android:dividerHeight="1dp"
+        android:dividerHeight="1dp"/>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_manage_produto_qtde"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/accent"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:gravity="end|center_vertical"
         android:layout_alignParentBottom="true"/>
 
 </RelativeLayout>
