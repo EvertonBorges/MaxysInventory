@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -23,6 +24,7 @@ import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Contribuidor;
 import com.maxys.maxysinventory.model.Empresa;
 import com.maxys.maxysinventory.model.Movimentacao;
+import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.Produto;
 import com.maxys.maxysinventory.model.Inventario;
 import com.maxys.maxysinventory.model.TipoRetornoIntent;
@@ -43,12 +45,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.appcompat.widget.LinearLayoutCompat;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 public class InventarioActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
 
     private ToggleButton tgbEstadoMercadoria;
+    private LinearLayoutCompat linearLayoutCompatQtde;
     private AppCompatEditText edtQtde;
     private AppCompatEditText edtCodReferencia;
     private AppCompatCheckBox chkAutoBarcode;
@@ -77,6 +81,7 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
         idUsuarioLogado = preferencias.getIdUsuarioLogado();
         contribuidorLogado = preferencias.getContribuidor();
 
+        linearLayoutCompatQtde = findViewById(R.id.ll_6);
         tgbEstadoMercadoria = findViewById(R.id.tb_movimentacao_estado_mercadoria);
         edtQtde = findViewById(R.id.et_movimentacao_qtde);
         edtCodReferencia = findViewById(R.id.et_movimentacao_cod_referencia);
@@ -90,6 +95,17 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
         tgbEstadoMercadoria.setOnCheckedChangeListener((buttonView, isChecked) -> tgbEstadoMercadoria.setBackgroundResource(isChecked ? R.color.toggleOn: R.color.toggleOff));
 
         empresa = (Empresa) getIntent().getSerializableExtra("empresa");
+
+        List<String> permissoes = new ArrayList<>();
+        for (Permissao permissao: empresa.getPermissoes()) {
+            if (!permissoes.contains(permissao.getNome())) {
+                permissoes.add(permissao.getNome());
+            }
+        }
+
+        boolean permitirQtde = permissoes.contains("actPermitirInventarioQtde");
+
+        linearLayoutCompatQtde.setVisibility(permitirQtde ? View.VISIBLE: View.GONE);
 
         query = ConfiguracaoFirebase.getFirebase();
 
@@ -184,10 +200,10 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                 };
 
                 query = ConfiguracaoFirebase.getFirebase()
-                        .child("inventario")
-                        .child(empresa.getId())
-                        .orderByChild("dataHoraMovimentacao")
-                        .limitToLast(10);
+                                            .child("inventario")
+                                            .child(empresa.getId())
+                                            .orderByChild("dataHoraMovimentacao")
+                                            .limitToLast(10);
 
                 query.addValueEventListener(valueEventListener);
             } else {
@@ -206,10 +222,6 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                             }
 
                             Collections.sort(inventarioTop10);
-
-                            while(inventarioTop10.size() > 10) {
-                                inventarioTop10.remove(10);
-                            }
                         } else {
                             query.removeEventListener(valueEventListener);
 
@@ -226,12 +238,6 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                                         }
 
                                         Collections.sort(inventarioTop10);
-
-                                        while(inventarioTop10.size() > 10) {
-                                            inventarioTop10.remove(10);
-                                        }
-                                    } else {
-
                                     }
 
                                     adapter.notifyDataSetChanged();
@@ -301,13 +307,21 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
         int qtde = Integer.parseInt(Objects.requireNonNull(edtQtde.getText()).toString().isEmpty() ? "1" : edtQtde.getText().toString());
         String codReferencia = Objects.requireNonNull(edtCodReferencia.getText()).toString();
 
-        if (qtde == 0) {
+        if (qtde == 0 && (linearLayoutCompatQtde.getVisibility() == View.VISIBLE)) {
             handler.post(() -> {
                 if (progressDialog.isShowing()) {
                     progressDialog.dismiss();
                 }
 
                 Util.AlertaInfo(this, "QUANTIDADE", "Quantidade informada não pode ser 0 (zero).");
+            });
+        } else if (qtde != 1 && (linearLayoutCompatQtde.getVisibility() == View.GONE)) {
+            handler.post(() -> {
+                if (progressDialog.isShowing()) {
+                    progressDialog.dismiss();
+                }
+
+                Util.AlertaInfo(this, "QUANTIDADE", "Quantidade informada não pode ser diferente de 1.");
             });
         } else if (codReferencia.isEmpty()) {
             handler.post(() -> {

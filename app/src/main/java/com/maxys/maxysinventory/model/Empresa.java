@@ -12,9 +12,10 @@ public class Empresa implements Serializable {
     private String id;
     private String nome;
     private Long dataHoraCriacao;
+    private List<Permissao> permissoes;
 
     public Empresa() {
-        setDataHoraCriacao(Calendar.getInstance().getTimeInMillis());
+        permissoes = new ArrayList<>();
     }
 
     public String getId() {
@@ -39,6 +40,14 @@ public class Empresa implements Serializable {
 
     public void setDataHoraCriacao(Long dataHoraCriacao) {
         this.dataHoraCriacao = dataHoraCriacao;
+    }
+
+    public List<Permissao> getPermissoes() {
+        return permissoes;
+    }
+
+    public void setPermissoes(List<Permissao> permissoes) {
+        this.permissoes = permissoes;
     }
 
     @Exclude

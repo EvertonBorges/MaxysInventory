@@ -6,6 +6,8 @@ import com.google.android.material.textfield.TextInputLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.appcompat.widget.AppCompatEditText;
+
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,7 +24,7 @@ import com.maxys.maxysinventory.adapter.ContribuidorAdapter;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Contribuidor;
 import com.maxys.maxysinventory.model.Empresa;
-import com.maxys.maxysinventory.model.LogAcoes;
+import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.TipoSelecaoPermissao;
 import com.maxys.maxysinventory.model.Usuario;
 import com.maxys.maxysinventory.util.Base64Custom;
@@ -30,6 +32,7 @@ import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -39,6 +42,7 @@ public class EmpresaActivity extends AppCompatActivity {
     private TextInputLayout tilEmpresa;
     private AppCompatEditText acetEmpresa;
     private EditText etContribuidor;
+    private ImageButton ibPermissoes;
     private ImageButton ibAddContribuidor;
     private Button btSalvar;
 
@@ -49,6 +53,7 @@ public class EmpresaActivity extends AppCompatActivity {
     // Informações da sessão.
     private String idUsuarioLogado;
     private Usuario usuario;
+    private Contribuidor contribuidor;
     private Empresa empresa;
 
     private DatabaseReference databaseReference;
@@ -62,6 +67,7 @@ public class EmpresaActivity extends AppCompatActivity {
         tilEmpresa = findViewById(R.id.ti_empresa_nome);
         acetEmpresa = findViewById(R.id.et_empresa_nome);
         etContribuidor = findViewById(R.id.et_empresa_novo_contribuidor);
+        ibPermissoes = findViewById(R.id.ib_permissoes);
         ibAddContribuidor = findViewById(R.id.ib_empresa_add_contribuidor);
         btSalvar = findViewById(R.id.bt_empresa_salvar);
 
@@ -76,6 +82,7 @@ public class EmpresaActivity extends AppCompatActivity {
             empresa = new Empresa();
             empresa.setId(UUID.randomUUID().toString());
             empresa.setNome("");
+            empresa.setDataHoraCriacao(Calendar.getInstance().getTimeInMillis());
 
             DatabaseReference databaseReference = ConfiguracaoFirebase.getFirebase();
             databaseReference.child("empresa").child(empresa.getId())
@@ -88,28 +95,60 @@ public class EmpresaActivity extends AppCompatActivity {
                 }
             });
 
-            Contribuidor contribuidor = new Contribuidor();
+            contribuidor = new Contribuidor();
             contribuidor.setEmail(usuario.getEmail());
             contribuidor.setNome(usuario.getNome());
 
-            databaseReference.child("empresa_contribuidores")
-                             .child(empresa.getId())
-                             .child(Base64Custom.codificarBase64(contribuidor.getEmail()))
-                             .setValue(contribuidor);
+            databaseReference.child("permissoes_contribuidores")
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            List<Permissao> permissoes = new ArrayList<>();
 
-            databaseReference.child("contribuidor_empresas")
-                             .child(Base64Custom.codificarBase64(contribuidor.getEmail()))
-                             .child(empresa.getId())
-                             .setValue(empresa);
+                            if (dataSnapshot.getValue() != null) {
+                                for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                    Permissao permissao = snapshot.getValue(Permissao.class);
 
-            LogAcoes logAcoes = new LogAcoes();
-            logAcoes.setIdUsuario(idUsuarioLogado);
-            logAcoes.setIdEmpresa(empresa.getId());
-            logAcoes.setDescricao("Criação de uma nova empresa.");
-            logAcoes.salvarLog();
+                                    if (!permissoes.contains(permissao)) {
+                                        permissoes.add(permissao);
+                                    }
+                                }
+                            }
+
+                            databaseReference.child("empresa_contribuidores")
+                                    .child(empresa.getId())
+                                    .child(Base64Custom.codificarBase64(contribuidor.getEmail()))
+                                    .setValue(contribuidor);
+
+                            databaseReference.child("contribuidor_empresas")
+                                    .child(Base64Custom.codificarBase64(contribuidor.getEmail()))
+                                    .child(empresa.getId())
+                                    .setValue(empresa);
+
+                            Util.salvarLog(empresa.getId(), idUsuarioLogado, "COMPANY - CREATED");
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
         } else {
             acetEmpresa.setText(empresa.getNome());
+            contribuidor = preferencias.getContribuidor();
         }
+
+        List<String> permissoes = new ArrayList<>();
+        for (Permissao permissao: contribuidor.getPermissoes()) {
+            if (!permissoes.contains(permissao.getNome())) {
+                permissoes.add(permissao.getNome());
+            }
+        }
+
+        boolean permitirEditarPermissoesContribuidores = permissoes.contains("actPermissoesContribuidorEmpresa");
+        boolean permitirEditarPermissoes = permissoes.contains("actPermissoesEmpresa");
+
+        ibPermissoes.setVisibility(permitirEditarPermissoes ? View.VISIBLE : View.GONE);
 
         contribuidores = new ArrayList<>();
 
@@ -164,9 +203,7 @@ public class EmpresaActivity extends AppCompatActivity {
                                      .child(empresa.getId())
                                      .child(Base64Custom.codificarBase64(contribuidor.getEmail()))
                                      .setValue(contribuidor).addOnCompleteListener(command -> {
-                                if (command.isSuccessful()) {
-                                    Util.salvarLog(empresa.getId(), idUsuarioLogado, "Adicionado contribuidor '" + Base64Custom.codificarBase64(contribuidor.getEmail()) + "' a empresa");
-                                } else {
+                                if (!command.isSuccessful()) {
                                     Util.salvarLog(empresa.getId(), idUsuarioLogado, "Erro ao adicionar contribuidor '" + Base64Custom.codificarBase64(contribuidor.getEmail()) + "' a empresa.");
                                 }
                             });
@@ -175,9 +212,7 @@ public class EmpresaActivity extends AppCompatActivity {
                                     .child(Base64Custom.codificarBase64(contribuidor.getEmail()))
                                     .child(empresa.getId())
                                     .setValue(empresa).addOnCompleteListener(command -> {
-                                if (command.isSuccessful()) {
-                                    Util.salvarLog(empresa.getId(), idUsuarioLogado, "Adicionado empresa ao contribuidor '" + Base64Custom.codificarBase64(contribuidor.getEmail()) + "'.");
-                                } else {
+                                if (!command.isSuccessful()) {
                                     Util.salvarLog(empresa.getId(), idUsuarioLogado, "Erro ao adicionar empresa ao contribuidor '" + Base64Custom.codificarBase64(contribuidor.getEmail()) + "' .");
                                 }
                             });
@@ -195,9 +230,9 @@ public class EmpresaActivity extends AppCompatActivity {
         });
 
         btSalvar.setOnClickListener(v -> {
-            String nomeEmpresa = acetEmpresa.getText().toString();
+            String nomeEmpresa = Objects.requireNonNull(acetEmpresa.getText()).toString();
             if (nomeEmpresa.isEmpty()) {
-                Util.AlertaInfo(EmpresaActivity.this, "NOME EMPRESA", "Nome da empresa deve ser informado!");
+                Util.AlertaInfo(EmpresaActivity.this, "NOME CONTRIBUIDOR", "Nome da empresa deve ser informado!");
                 acetEmpresa.requestFocus();
             } else {
                 empresa.setNome(nomeEmpresa);
@@ -208,7 +243,7 @@ public class EmpresaActivity extends AppCompatActivity {
                          .addOnCompleteListener(command -> {
                     if (command.isSuccessful()) {
 
-                        Util.salvarLog(empresa.getId(), idUsuarioLogado, "Informações atualizadas para a empresa (" + empresa.getId() + ").");
+                        Util.salvarLog(empresa.getId(), idUsuarioLogado, "COMPANY - UPDATED");
 
                         reference.child("contribuidor_empresas")
                                  .orderByChild(empresa.getId() + "/id")
@@ -222,14 +257,12 @@ public class EmpresaActivity extends AppCompatActivity {
                                                 .child(empresa.getId())
                                                 .setValue(empresa)
                                                 .addOnCompleteListener(command1 -> {
-                                            if (command1.isSuccessful()) {
-                                                Util.salvarLog(empresa.getId(), idUsuarioLogado, "Informações da empresa atualizadas, para o contribuidor '" + snapshot.getKey() + "'.");
-                                            } else {
+                                            if (!command1.isSuccessful()) {
                                                 Util.salvarLog(empresa.getId(), idUsuarioLogado, "Erro ao atualizar informações da empresa, para o contribuidor '" + snapshot.getKey() + "'.");
                                             }
                                         });
                                     }
-                                    Util.AlertaInfo(EmpresaActivity.this, "EMPRESA ATUALIZADA", "Empresa atualizada com sucesso.", (dialog, which) -> {
+                                    Util.AlertaInfo(EmpresaActivity.this, "CONTRIBUIDOR ATUALIZADA", "Empresa atualizada com sucesso.", (dialog, which) -> {
                                         finish();
                                     });
                                 }
@@ -252,7 +285,7 @@ public class EmpresaActivity extends AppCompatActivity {
 
             Intent intent = new Intent(EmpresaActivity.this, PermissaoActivity.class);
             intent.putExtra("idContribuidorSelecionado", Base64Custom.codificarBase64(contribuidor.getEmail()));
-            intent.putExtra("tipoSelecaoPermissao", TipoSelecaoPermissao.EMPRESA.toString());
+            intent.putExtra("tipoSelecaoPermissao", TipoSelecaoPermissao.CONTRIBUIDOR.toString());
             intent.putExtra("contribuidor", contribuidor);
             intent.putExtra("empresa", empresa);
             startActivity(intent);

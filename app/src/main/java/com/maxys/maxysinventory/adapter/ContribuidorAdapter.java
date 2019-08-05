@@ -1,8 +1,6 @@
 package com.maxys.maxysinventory.adapter;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -11,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -20,13 +17,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Contribuidor;
-import com.maxys.maxysinventory.model.LogAcoes;
 import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.TipoSelecaoPermissao;
-import com.maxys.maxysinventory.secondaryActivities.EmpresaActivity;
 import com.maxys.maxysinventory.secondaryActivities.PermissaoActivity;
 import com.maxys.maxysinventory.util.Base64Custom;
-import com.maxys.maxysinventory.util.PreferenciasShared;
 import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
 
@@ -34,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 public class ContribuidorAdapter extends ArrayAdapter<Contribuidor> {
 
@@ -90,7 +83,7 @@ public class ContribuidorAdapter extends ArrayAdapter<Contribuidor> {
                     if (permitirPermissoesEmpresa || permitirPermissoesGerais) {
                         Intent intent = new Intent(context, PermissaoActivity.class);
                         intent.putExtra("idContribuidorSelecionado", Base64Custom.codificarBase64(contribuidor.getEmail()));
-                        intent.putExtra("tipoSelecaoPermissao", TipoSelecaoPermissao.EMPRESA.toString());
+                        intent.putExtra("tipoSelecaoPermissao", TipoSelecaoPermissao.CONTRIBUIDOR.toString());
                         intent.putExtra("contribuidor", contribuidor);
                         intent.putExtra("idEmpresa", idEmpresa);
                         context.startActivity(intent);
@@ -107,7 +100,7 @@ public class ContribuidorAdapter extends ArrayAdapter<Contribuidor> {
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if (dataSnapshot.getValue() != null) {
                                         if (dataSnapshot.getChildrenCount() <= 1) {
-                                            Util.Alerta(context, "EMPRESA", "Você é o último contribuidor desta empresa, deseja realmente ser removido?\nAo fazer isso a empresa será excluída.", (dialog, which) -> {
+                                            Util.Alerta(context, "CONTRIBUIDOR", "Você é o último contribuidor desta empresa, deseja realmente ser removido?\nAo fazer isso a empresa será excluída.", (dialog, which) -> {
                                                 removerContribuidores(reference, idUsuarioLogado, contribuidor);
                                                 removerEmpresa(reference, idUsuarioLogado, idEmpresa);
 
@@ -116,13 +109,13 @@ public class ContribuidorAdapter extends ArrayAdapter<Contribuidor> {
                                         } else {
                                             if (idUsuarioLogado.equals(Base64Custom.codificarBase64(contribuidor.getEmail()))) {
 
-                                                Util.Alerta(context, "EMPRESA", "Deseja realmente sair da empresa?", (dialog, which) -> {
+                                                Util.Alerta(context, "CONTRIBUIDOR", "Deseja realmente sair da empresa?", (dialog, which) -> {
                                                     removerContribuidores(reference, idUsuarioLogado, contribuidor);
 
                                                     ((Activity) context).finish();
                                                 }).setNegativeButton("Não", (dialog, which) -> dialog.dismiss()).show();
                                             } else {
-                                                Util.Alerta(context, "EMPRESA", "Deseja realmente remover o contribuidor?", (dialog, which) -> {
+                                                Util.Alerta(context, "CONTRIBUIDOR", "Deseja realmente remover o contribuidor?", (dialog, which) -> {
                                                     removerContribuidores(reference, idUsuarioLogado, contribuidor);
                                                 }).setNegativeButton("Não", (dialog, which) -> dialog.dismiss()).show();
                                             }

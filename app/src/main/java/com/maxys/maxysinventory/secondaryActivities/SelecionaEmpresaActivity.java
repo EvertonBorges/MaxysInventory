@@ -120,7 +120,7 @@ public class SelecionaEmpresaActivity extends AppCompatActivity {
                 abrirProximaTela(empresa, EmpresaActivity.class);
                 break;
             default :
-                Util.AlertaInfo(SelecionaEmpresaActivity.this, "SELECIONE EMPRESA", "Selecione uma empresa válida.");
+                Util.AlertaInfo(SelecionaEmpresaActivity.this, "SELECIONE CONTRIBUIDOR", "Selecione uma empresa válida.");
                 break;
         }
     }

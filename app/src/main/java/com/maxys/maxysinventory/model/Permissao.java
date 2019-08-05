@@ -15,6 +15,11 @@ public class Permissao implements Serializable {
     public Permissao() {
     }
 
+    public Permissao(String nome, String descricao) {
+        this.nome = nome;
+        this.descricao = descricao;
+    }
+
     public Permissao(String nome) {
         this.nome = nome;
     }

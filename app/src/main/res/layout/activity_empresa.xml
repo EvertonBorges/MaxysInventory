@@ -6,6 +6,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageButton
+        android:id="@+id/ib_permissoes"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:background="?android:attr/selectableItemBackground"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_lock_black_24dp" />
+
     <LinearLayout
         android:id="@+id/ll_3"
         android:layout_width="match_parent"
