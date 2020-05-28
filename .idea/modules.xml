@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/MaxysInventory.iml" filepath="$PROJECT_DIR$/MaxysInventory.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Maxys Inventory.iml" filepath="$PROJECT_DIR$/Maxys Inventory.iml" group="Maxys Inventory" />
+      <module fileurl="file://$PROJECT_DIR$/app/Maxys Inventory-app.iml" filepath="$PROJECT_DIR$/app/Maxys Inventory-app.iml" group="Maxys Inventory/app" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

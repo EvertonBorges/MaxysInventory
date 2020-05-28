@@ -9,9 +9,21 @@
     <color name="toggleOff">#C01313</color>
     <color name="toggleOn">#008577</color>
 
-    <color name="primaryColor">#795548</color>
-    <color name="primaryDarkColor">#5D4037</color>
-    <color name="primaryLightColor">#D7CCC8</color>
+    <color name="primaryColor">#7b1fa2</color>
+    <color name="primaryDarkColor">#4a0072</color>
+    <color name="primaryLightColor">#ae52d4</color>
+
+    <color name="primaryTextColor">#ffffff</color>
+    <color name="primaryTextDarkColor">#ffffff</color>
+    <color name="primaryTextLightColor">#000000</color>
+
+    <color name="secondaryColor">#4a148c</color>
+    <color name="secondaryDarkColor">#12005e</color>
+    <color name="secondaryLightColor">#7c43bd</color>
+
+    <color name="secondaryTextColor">#ffffff</color>
+    <color name="secondaryTextDarkColor">#ffffff</color>
+    <color name="secondaryTextLightColor">#ffffff</color>
 
     <color name="primary">#607D8B</color>
     <color name="primary_dark">#455A64</color>
