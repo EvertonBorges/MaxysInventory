@@ -7,11 +7,23 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.appcompat.widget.AppCompatEditText;
+import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -23,12 +35,11 @@ import com.maxys.maxysinventory.adapter.InventarioAdapter;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Contribuidor;
 import com.maxys.maxysinventory.model.Empresa;
+import com.maxys.maxysinventory.model.Inventario;
 import com.maxys.maxysinventory.model.Movimentacao;
 import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.Produto;
-import com.maxys.maxysinventory.model.Inventario;
 import com.maxys.maxysinventory.model.TipoRetornoIntent;
-import com.maxys.maxysinventory.model.Usuario;
 import com.maxys.maxysinventory.util.Base64Custom;
 import com.maxys.maxysinventory.util.PreferenciasStatic;
 import com.maxys.maxysinventory.util.Util;
@@ -39,13 +50,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatCheckBox;
-import androidx.appcompat.widget.AppCompatEditText;
-import androidx.appcompat.widget.AppCompatImageButton;
-import androidx.appcompat.widget.LinearLayoutCompat;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
@@ -92,12 +96,20 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
         edtPesquisa = findViewById(R.id.et_movimentacao_pesquisa_produto);
         AppCompatImageButton ibPesquisar = findViewById(R.id.ib_movimentacao_pesquisa_produto);
 
-        tgbEstadoMercadoria.setOnCheckedChangeListener((buttonView, isChecked) -> tgbEstadoMercadoria.setBackgroundResource(isChecked ? R.color.toggleOn: R.color.toggleOff));
+        tgbEstadoMercadoria.setOnCheckedChangeListener((buttonView, isChecked) -> tgbEstadoMercadoria.setBackgroundResource(isChecked ? R.color.toggleOn : R.color.toggleOff));
 
         empresa = (Empresa) getIntent().getSerializableExtra("empresa");
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+
+        toolbar.setTitle(this.getString(R.string.txtManageInventario));
+        toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         List<String> permissoes = new ArrayList<>();
-        for (Permissao permissao: empresa.getPermissoes()) {
+        for (Permissao permissao : empresa.getPermissoes()) {
             if (!permissoes.contains(permissao.getNome())) {
                 permissoes.add(permissao.getNome());
             }
@@ -105,7 +117,7 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
 
         boolean permitirQtde = permissoes.contains("actPermitirInventarioQtde");
 
-        linearLayoutCompatQtde.setVisibility(permitirQtde ? View.VISIBLE: View.GONE);
+        linearLayoutCompatQtde.setVisibility(permitirQtde ? View.VISIBLE : View.GONE);
 
         query = ConfiguracaoFirebase.getFirebase();
 
@@ -118,7 +130,7 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                 inventarioTop10.clear();
 
                 if (dataSnapshot.getValue() != null) {
-                    for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         Inventario inventario = snapshot.getValue(Inventario.class);
 
                         inventarioTop10.add(inventario);
@@ -137,10 +149,10 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
         };
 
         query = ConfiguracaoFirebase.getFirebase()
-                                    .child("inventario")
-                                    .child(empresa.getId())
-                                    .orderByChild("dataHoraMovimentacao")
-                                    .limitToLast(10);
+                .child("inventario")
+                .child(empresa.getId())
+                .orderByChild("dataHoraMovimentacao")
+                .limitToLast(10);
 
         handler = new Handler();
 
@@ -181,7 +193,7 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                         inventarioTop10.clear();
 
                         if (dataSnapshot.getValue() != null) {
-                            for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                 Inventario inventario = snapshot.getValue(Inventario.class);
 
                                 inventarioTop10.add(inventario);
@@ -200,10 +212,10 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                 };
 
                 query = ConfiguracaoFirebase.getFirebase()
-                                            .child("inventario")
-                                            .child(empresa.getId())
-                                            .orderByChild("dataHoraMovimentacao")
-                                            .limitToLast(10);
+                        .child("inventario")
+                        .child(empresa.getId())
+                        .orderByChild("dataHoraMovimentacao")
+                        .limitToLast(10);
 
                 query.addValueEventListener(valueEventListener);
             } else {
@@ -215,7 +227,7 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                         inventarioTop10.clear();
 
                         if (dataSnapshot.getValue() != null) {
-                            for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                 Inventario inventario = snapshot.getValue(Inventario.class);
 
                                 inventarioTop10.add(inventario);
@@ -231,7 +243,7 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                                     inventarioTop10.clear();
 
                                     if (dataSnapshot.getValue() != null) {
-                                        for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                             Inventario inventario = snapshot.getValue(Inventario.class);
 
                                             inventarioTop10.add(inventario);
@@ -250,11 +262,11 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                             };
 
                             query = ConfiguracaoFirebase.getFirebase()
-                                                        .child("inventario")
-                                                        .child(empresa.getId())
-                                                        .orderByChild("codReferencia")
-                                                        .startAt(textoPesquisa)
-                                                        .endAt(textoPesquisa + "\uf8ff");
+                                    .child("inventario")
+                                    .child(empresa.getId())
+                                    .orderByChild("codReferencia")
+                                    .startAt(textoPesquisa)
+                                    .endAt(textoPesquisa + "\uf8ff");
 
                             query.addValueEventListener(valueEventListener);
                         }
@@ -269,11 +281,11 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                 };
 
                 query = ConfiguracaoFirebase.getFirebase()
-                                            .child("inventario")
-                                            .child(empresa.getId())
-                                            .orderByChild("descricao")
-                                            .startAt(textoPesquisa)
-                                            .endAt(textoPesquisa + "\uf8ff");
+                        .child("inventario")
+                        .child(empresa.getId())
+                        .orderByChild("descricao")
+                        .startAt(textoPesquisa)
+                        .endAt(textoPesquisa + "\uf8ff");
 
                 query.addValueEventListener(valueEventListener);
             }
@@ -291,9 +303,32 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
             intent.putExtra("codReferencia", inventario.getCodReferencia());
             intent.putExtra("descricao", inventario.getDescricao());
             intent.putExtra("idEmpresa", empresa.getId());
-            startActivity(intent);;
+            startActivity(intent);
+            ;
         });
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+
+        final MenuItem item = menu.findItem(R.id.item_sair);
+        item.setVisible(false);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private void abrirCameraIntent() {
@@ -336,139 +371,139 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
 
             DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
             reference.child("empresa_produtos")
-                     .child(empresa.getId())
-                     .orderByChild("codReferencia")
-                     .equalTo(codReferencia)
-                     .limitToFirst(1)
-                     .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.getValue() != null) {
-                            for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                                String idProduto = snapshot.getKey();
-                                Produto produto = snapshot.getValue(Produto.class);
+                    .child(empresa.getId())
+                    .orderByChild("codReferencia")
+                    .equalTo(codReferencia)
+                    .limitToFirst(1)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.getValue() != null) {
+                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                    String idProduto = snapshot.getKey();
+                                    Produto produto = snapshot.getValue(Produto.class);
 
-                                try {
-                                    boolean isAvariado = !tgbEstadoMercadoria.isChecked();
-                                    Movimentacao movimentacao = new Movimentacao();
-                                    movimentacao.setQtde(qtde);
-                                    movimentacao.setIdProduto(idProduto);
-                                    movimentacao.setAvariado(isAvariado);
-                                    movimentacao.setIdUsuario(Base64Custom.codificarBase64(contribuidorLogado.getEmail()));
-                                    movimentacao.setEmailUsuario(contribuidorLogado.getEmail());
-                                    movimentacao.setNomeUsuario(contribuidorLogado.getNome());
+                                    try {
+                                        boolean isAvariado = !tgbEstadoMercadoria.isChecked();
+                                        Movimentacao movimentacao = new Movimentacao();
+                                        movimentacao.setQtde(qtde);
+                                        movimentacao.setIdProduto(idProduto);
+                                        movimentacao.setAvariado(isAvariado);
+                                        movimentacao.setIdUsuario(Base64Custom.codificarBase64(contribuidorLogado.getEmail()));
+                                        movimentacao.setEmailUsuario(contribuidorLogado.getEmail());
+                                        movimentacao.setNomeUsuario(contribuidorLogado.getNome());
 
-                                    reference.child("empresa_movimentacoes")
-                                             .child(empresa.getId())
-                                             .push()
-                                             .setValue(movimentacao)
-                                             .addOnCompleteListener(task -> {
-                                                 if (task.isSuccessful()) {
-                                                     Util.salvarLog(empresa.getId(), idUsuarioLogado, "Movimentação registrada para o produto: " + idProduto);
+                                        reference.child("empresa_movimentacoes")
+                                                .child(empresa.getId())
+                                                .push()
+                                                .setValue(movimentacao)
+                                                .addOnCompleteListener(task -> {
+                                                    if (task.isSuccessful()) {
+                                                        Util.salvarLog(empresa.getId(), idUsuarioLogado, "Movimentação registrada para o produto: " + idProduto);
 
-                                                     reference.child("empresa_movimentacoes")
-                                                              .child(empresa.getId())
-                                                              .orderByChild("idProduto")
-                                                              .equalTo(idProduto)
-                                                              .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                                 @Override
-                                                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                                                     Inventario inventario = new Inventario();
-                                                                     inventario.setIdProduto(idProduto);
-                                                                     inventario.setCodReferencia(Objects.requireNonNull(produto).getCodReferencia());
-                                                                     inventario.setDescricao(produto.getDescricao());
+                                                        reference.child("empresa_movimentacoes")
+                                                                .child(empresa.getId())
+                                                                .orderByChild("idProduto")
+                                                                .equalTo(idProduto)
+                                                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                    @Override
+                                                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                                        Inventario inventario = new Inventario();
+                                                                        inventario.setIdProduto(idProduto);
+                                                                        inventario.setCodReferencia(Objects.requireNonNull(produto).getCodReferencia());
+                                                                        inventario.setDescricao(produto.getDescricao());
 
-                                                                     if (dataSnapshot.getValue() != null) {
-                                                                         for (DataSnapshot snapshot1: dataSnapshot.getChildren()) {
-                                                                             Movimentacao m = snapshot1.getValue(Movimentacao.class);
-                                                                             if (Objects.requireNonNull(m).isAvariado()) {
-                                                                                 inventario.addAvarias(m.getQtde());
-                                                                             } else {
-                                                                                 inventario.addSaldo(m.getQtde());
-                                                                             }
-                                                                         }
-                                                                     }
+                                                                        if (dataSnapshot.getValue() != null) {
+                                                                            for (DataSnapshot snapshot1 : dataSnapshot.getChildren()) {
+                                                                                Movimentacao m = snapshot1.getValue(Movimentacao.class);
+                                                                                if (Objects.requireNonNull(m).isAvariado()) {
+                                                                                    inventario.addAvarias(m.getQtde());
+                                                                                } else {
+                                                                                    inventario.addSaldo(m.getQtde());
+                                                                                }
+                                                                            }
+                                                                        }
 
-                                                                     reference.child("inventario")
-                                                                              .child(empresa.getId())
-                                                                              .child(Objects.requireNonNull(idProduto))
-                                                                              .setValue(inventario).addOnCompleteListener(command -> {
-                                                                                  if (command.isSuccessful()) {
-                                                                                      Util.salvarLog(empresa.getId(), idUsuarioLogado, "Inventário do produto " + idProduto + " foi cadastradi/atualizado.");
+                                                                        reference.child("inventario")
+                                                                                .child(empresa.getId())
+                                                                                .child(Objects.requireNonNull(idProduto))
+                                                                                .setValue(inventario).addOnCompleteListener(command -> {
+                                                                            if (command.isSuccessful()) {
+                                                                                Util.salvarLog(empresa.getId(), idUsuarioLogado, "Inventário do produto " + idProduto + " foi cadastradi/atualizado.");
 
-                                                                                      handler.post(() -> {
-                                                                                          if (progressDialog.isShowing()) {
-                                                                                              progressDialog.dismiss();
-                                                                                          }
+                                                                                handler.post(() -> {
+                                                                                    if (progressDialog.isShowing()) {
+                                                                                        progressDialog.dismiss();
+                                                                                    }
 
-                                                                                          Toast.makeText(InventarioActivity.this, "Movimentação e inventário cadastrados com sucesso.", Toast.LENGTH_LONG).show();
-                                                                                          limparCampos();
-                                                                                      });
-                                                                                  } else {
-                                                                                      Util.salvarLog(empresa.getId(), idUsuarioLogado, "Erro ao realizar a atualização/cadastro do inventário para o produto " + idProduto);
+                                                                                    Toast.makeText(InventarioActivity.this, "Movimentação e inventário cadastrados com sucesso.", Toast.LENGTH_LONG).show();
+                                                                                    limparCampos();
+                                                                                });
+                                                                            } else {
+                                                                                Util.salvarLog(empresa.getId(), idUsuarioLogado, "Erro ao realizar a atualização/cadastro do inventário para o produto " + idProduto);
 
-                                                                                      handler.post(() -> {
-                                                                                          if (progressDialog.isShowing()) {
-                                                                                              progressDialog.dismiss();
-                                                                                          }
+                                                                                handler.post(() -> {
+                                                                                    if (progressDialog.isShowing()) {
+                                                                                        progressDialog.dismiss();
+                                                                                    }
 
-                                                                                          Util.AlertaInfo(InventarioActivity.this, "INVENTÁRIO", "Falha ao salvar o inventário.");
-                                                                                      });
-                                                                                  }
-                                                                     });
+                                                                                    Util.AlertaInfo(InventarioActivity.this, "INVENTÁRIO", "Falha ao salvar o inventário.");
+                                                                                });
+                                                                            }
+                                                                        });
 
-                                                                 }
+                                                                    }
 
-                                                                 @Override
-                                                                 public void onCancelled(@NonNull DatabaseError databaseError) {
+                                                                    @Override
+                                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                                                                 }
-                                                             });
-                                                 } else {
-                                                     handler.post(() -> {
-                                                         if (progressDialog.isShowing()) {
-                                                             progressDialog.dismiss();
-                                                         }
+                                                                    }
+                                                                });
+                                                    } else {
+                                                        handler.post(() -> {
+                                                            if (progressDialog.isShowing()) {
+                                                                progressDialog.dismiss();
+                                                            }
 
-                                                         Util.AlertaInfo(InventarioActivity.this, "MOVIMENTAÇÃO", "Falha ao salvar a movimentação.");
-                                                     });
-                                                 }
-                                             });
+                                                            Util.AlertaInfo(InventarioActivity.this, "MOVIMENTAÇÃO", "Falha ao salvar a movimentação.");
+                                                        });
+                                                    }
+                                                });
 
 
-                                } catch (Exception ex) {
-                                    handler.post(() -> {
-                                        if (progressDialog.isShowing()) {
-                                            progressDialog.dismiss();
-                                        }
+                                    } catch (Exception ex) {
+                                        handler.post(() -> {
+                                            if (progressDialog.isShowing()) {
+                                                progressDialog.dismiss();
+                                            }
 
-                                        Util.AlertaInfo(InventarioActivity.this, "ERRO", "Erro ao enviar as informações.\n\nErro: " + ex.getMessage());
-                                        limparCampos();
-                                    });
+                                            Util.AlertaInfo(InventarioActivity.this, "ERRO", "Erro ao enviar as informações.\n\nErro: " + ex.getMessage());
+                                            limparCampos();
+                                        });
+                                    }
                                 }
+                            } else {
+                                handler.post(() -> {
+                                    if (progressDialog.isShowing()) {
+                                        progressDialog.dismiss();
+                                    }
+
+                                    Util.AlertaInfo(InventarioActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + codReferencia + " não encontrado.");
+
+                                    limparCampos();
+                                });
                             }
-                        } else {
-                            handler.post(() -> {
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            handler.post(() -> handler.post(() -> {
                                 if (progressDialog.isShowing()) {
                                     progressDialog.dismiss();
                                 }
-
-                                Util.AlertaInfo(InventarioActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + codReferencia + " não encontrado.");
-
-                                limparCampos();
-                            });
+                            }));
                         }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        handler.post(() -> handler.post(() -> {
-                            if (progressDialog.isShowing()) {
-                                progressDialog.dismiss();
-                            }
-                        }));
-                    }
-            });
+                    });
         }
     }
 
@@ -528,7 +563,7 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
         if (EasyPermissions.hasPermissions(this, perms)) {
             abrirCameraIntent();
         } else {
-            EasyPermissions.requestPermissions(this, "Permissão de uso da câmera.", TipoRetornoIntent.BARCODE_SCAN.ordinal() , perms);
+            EasyPermissions.requestPermissions(this, "Permissão de uso da câmera.", TipoRetornoIntent.BARCODE_SCAN.ordinal(), perms);
         }
     }
 
@@ -547,8 +582,8 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
         if (requestCode == TipoRetornoIntent.BARCODE_SCAN.ordinal()) {
             if (perms.contains(Manifest.permission.CAMERA)) {
                 Util.AlertaInfo(InventarioActivity.this,
-                                "PERMISSÃO CÂMERA",
-                                "É necessário aceitar o uso da câmera para utilizar esta funcionalidade.");
+                        "PERMISSÃO CÂMERA",
+                        "É necessário aceitar o uso da câmera para utilizar esta funcionalidade.");
             }
         }
     }

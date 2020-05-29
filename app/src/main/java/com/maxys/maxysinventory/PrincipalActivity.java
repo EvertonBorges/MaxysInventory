@@ -1,10 +1,7 @@
 package com.maxys.maxysinventory;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -12,18 +9,20 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.maxys.maxysinventory.config.ConfiguracaoFirebase;
 import com.maxys.maxysinventory.model.Permissao;
 import com.maxys.maxysinventory.model.TipoSelecaoEmpresa;
-import com.maxys.maxysinventory.model.TipoSelecaoPermissao;
 import com.maxys.maxysinventory.model.TipoTransicaoEmpresa;
 import com.maxys.maxysinventory.model.Usuario;
 import com.maxys.maxysinventory.secondaryActivities.LoginActivity;
-import com.maxys.maxysinventory.secondaryActivities.PermissaoActivity;
 import com.maxys.maxysinventory.secondaryActivities.SelecionaEmpresaActivity;
 import com.maxys.maxysinventory.secondaryActivities.UsuarioActivity;
 import com.maxys.maxysinventory.util.PreferenciasStatic;
+import com.maxys.maxysinventory.util.Util;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,8 +34,7 @@ public class PrincipalActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private PreferenciasStatic preferencias;
 
-    @SuppressLint("SimpleDateFormat")
-    private final SimpleDateFormat formatadorData = new SimpleDateFormat("dd/MM/yyyy");
+    private final SimpleDateFormat formatadorData = new SimpleDateFormat("dd/MM/yyyy", Util.BRAZIL_LOCALE);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +47,7 @@ public class PrincipalActivity extends AppCompatActivity {
         Button btnEmpresa = findViewById(R.id.btn_principal_empresa);
         Button btnProduto = findViewById(R.id.btn_principal_produtos);
         Button btnInventario = findViewById(R.id.btn_principal_inventario);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
 
         toolbar.setTitle("Maxys Inventory");

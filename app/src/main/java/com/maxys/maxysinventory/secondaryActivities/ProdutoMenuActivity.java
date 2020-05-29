@@ -5,16 +5,19 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -37,22 +40,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import androidx.fragment.app.FragmentActivity;
 import droidninja.filepicker.FilePickerBuilder;
 import droidninja.filepicker.FilePickerConst;
 import droidninja.filepicker.models.sort.SortingTypes;
 import droidninja.filepicker.utils.Orientation;
 
 public class ProdutoMenuActivity extends AppCompatActivity {
-
-    @SuppressLint("SimpleDateFormat")
-    private final SimpleDateFormat formatadorData = new SimpleDateFormat("dd/MM/yyyy");
 
     private Empresa empresa;
 
@@ -63,16 +61,22 @@ public class ProdutoMenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_produto_menu);
 
-        TextView edtNomeUsuario = findViewById(R.id.txt_menu_produto_usuario);
-        TextView edtDataHora = findViewById(R.id.txt_menu_produto_data);
         Button btnImportar = findViewById(R.id.btn_menu_produto_importar);
         Button btnExportar = findViewById(R.id.btn_menu_produto_exportar);
         Button btnGerenciar = findViewById(R.id.btn_menu_produto_gerenciar);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+
+        toolbar.setTitle(this.getString(R.string.txtManageProdutos));
+        toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         PreferenciasStatic preferencias = PreferenciasStatic.getInstance();
         Contribuidor contribuidor = preferencias.getContribuidor();
         List<String> permissoes = new ArrayList<>();
-        for (com.maxys.maxysinventory.model.Permissao permissao: contribuidor.getPermissoes()) {
+        for (com.maxys.maxysinventory.model.Permissao permissao : contribuidor.getPermissoes()) {
             if (!permissoes.contains(permissao.getNome())) {
                 permissoes.add(permissao.getNome());
             }
@@ -81,15 +85,11 @@ public class ProdutoMenuActivity extends AppCompatActivity {
         boolean permitirImportarProdutos = permissoes.contains("actImportarProdutos");
         boolean permitirExportarProdutos = permissoes.contains("actExportarProdutos");
 
-        edtNomeUsuario.setText(contribuidor.getNome());
         btnImportar.setVisibility(permitirImportarProdutos ? View.VISIBLE : View.GONE);
         btnExportar.setVisibility(permitirExportarProdutos ? View.VISIBLE : View.GONE);
 
         Intent it = getIntent();
         empresa = (Empresa) it.getSerializableExtra("empresa");
-
-        String data = "Data: " + formatadorData.format(Calendar.getInstance().getTime());
-        edtDataHora.setText(data);
 
         btnImportar.setOnClickListener(v -> showFileChooser());
 
@@ -103,20 +103,42 @@ public class ProdutoMenuActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+
+        final MenuItem item = menu.findItem(R.id.item_sair);
+        item.setVisible(false);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     private void showFileChooser() {
-        boolean permitido = Permissao.validaPermissao(1,this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE});
+        boolean permitido = Permissao.validaPermissao(1, this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
 
         if (permitido) {
-             FilePickerBuilder.Companion.getInstance()
-                                        .setMaxCount(1)
-                                        .setActivityTheme(R.style.LibAppTheme)
-                                        .setActivityTitle("Selecione o arquivo")
-                                        .addFileSupport("TXT", new String[] {".txt"}, R.drawable.ic_insert_drive_file)
-                                        .enableDocSupport(false)
-                                        .enableSelectAll(false)
-                                        .sortDocumentsBy(SortingTypes.name)
-                                        .withOrientation(Orientation.PORTRAIT_ONLY)
-                                        .pickFile(this, TipoRetornoIntent.FILE_SEARCH.ordinal());
+            FilePickerBuilder.Companion.getInstance()
+                    .setMaxCount(1)
+                    .setActivityTheme(R.style.LibAppTheme)
+                    .setActivityTitle("Selecione o arquivo")
+                    .addFileSupport("TXT", new String[]{".txt"}, R.drawable.ic_insert_drive_file)
+                    .enableDocSupport(false)
+                    .enableSelectAll(false)
+                    .sortDocumentsBy(SortingTypes.name)
+                    .withOrientation(Orientation.PORTRAIT_ONLY)
+                    .pickFile(this, TipoRetornoIntent.FILE_SEARCH.ordinal());
         } else {
             Util.AlertaInfo(ProdutoMenuActivity.this, "Permissão arquivos", "É necessária permitir o acesso aos diretórios e arquivos do dispositivo.");
         }
@@ -160,7 +182,7 @@ public class ProdutoMenuActivity extends AppCompatActivity {
         //Obrigatoriamente você precisa fechar
         fosExt.close();
 
-        Util.AlertaInfo(ProdutoMenuActivity.this,"EXPORTAR ARQUIVO","Arquivo exportado com sucesso.");
+        Util.AlertaInfo(ProdutoMenuActivity.this, "EXPORTAR ARQUIVO", "Arquivo exportado com sucesso.");
     }
 
     private void exportarProdutos(File fileExt) {
@@ -172,128 +194,128 @@ public class ProdutoMenuActivity extends AppCompatActivity {
 
         DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
         reference.child("empresa_produtos")
-                 .child(empresa.getId())
-                 .orderByChild("codReferencia")
-                 .addListenerForSingleValueEvent(new ValueEventListener() {
-                     @Override
-                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                         if (dataSnapshot.getValue() != null) {
-                             HashMap<String, Inventario> inventarios = new HashMap<>();
+                .child(empresa.getId())
+                .orderByChild("codReferencia")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.getValue() != null) {
+                            HashMap<String, Inventario> inventarios = new HashMap<>();
 
-                             for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                                 Produto produto = snapshot.getValue(Produto.class);
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                Produto produto = snapshot.getValue(Produto.class);
 
-                                 Inventario inventario = new Inventario();
-                                 inventario.setCodReferencia(produto.getCodReferencia());
-                                 inventario.setDescricao(produto.getDescricao());
+                                Inventario inventario = new Inventario();
+                                inventario.setCodReferencia(produto.getCodReferencia());
+                                inventario.setDescricao(produto.getDescricao());
 
-                                 inventarios.put(snapshot.getKey(), inventario);
-                             }
+                                inventarios.put(snapshot.getKey(), inventario);
+                            }
 
-                             reference.child("empresa_movimentacoes")
-                                      .child(empresa.getId())
-                                      .addListenerForSingleValueEvent(new ValueEventListener() {
-                                          @Override
-                                          public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                              if (dataSnapshot.getValue() != null) {
-                                                  handler.post(() -> {
-                                                      progressDialog.setTitle("GERANDO ARQUIVO");
-                                                      progressDialog.setMessage("Gerando arquivo, por favor aguarde um momento.");
-                                                      progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                                                      progressDialog.setProgress(0);
-                                                      progressDialog.setMax((int) dataSnapshot.getChildrenCount());
-                                                  });
+                            reference.child("empresa_movimentacoes")
+                                    .child(empresa.getId())
+                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            if (dataSnapshot.getValue() != null) {
+                                                handler.post(() -> {
+                                                    progressDialog.setTitle("GERANDO ARQUIVO");
+                                                    progressDialog.setMessage("Gerando arquivo, por favor aguarde um momento.");
+                                                    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                                                    progressDialog.setProgress(0);
+                                                    progressDialog.setMax((int) dataSnapshot.getChildrenCount());
+                                                });
 
-                                                  for (DataSnapshot snapshot1 : dataSnapshot.getChildren()) {
-                                                      Movimentacao movimentacao = snapshot1.getValue(Movimentacao.class);
+                                                for (DataSnapshot snapshot1 : dataSnapshot.getChildren()) {
+                                                    Movimentacao movimentacao = snapshot1.getValue(Movimentacao.class);
 
-                                                      Inventario inventario = inventarios.get(movimentacao.getIdProduto());
-                                                      inventario.setDataHoraMovimentacao(movimentacao.getDataHoraMovimentacao());
+                                                    Inventario inventario = inventarios.get(movimentacao.getIdProduto());
+                                                    inventario.setDataHoraMovimentacao(movimentacao.getDataHoraMovimentacao());
 
-                                                      if (movimentacao.isAvariado()) {
-                                                          inventario.addAvarias(movimentacao.getQtde());
-                                                      } else {
-                                                          inventario.addSaldo(movimentacao.getQtde());
-                                                      }
+                                                    if (movimentacao.isAvariado()) {
+                                                        inventario.addAvarias(movimentacao.getQtde());
+                                                    } else {
+                                                        inventario.addSaldo(movimentacao.getQtde());
+                                                    }
 
 
-                                                  }
+                                                }
 
-                                                  StringBuilder conteudoArquivo = new StringBuilder();
-                                                  int i = 0;
-                                                  for (Inventario inventario: inventarios.values()) {
-                                                      String codReferencia = "";
-                                                      String codInterno = "";
+                                                StringBuilder conteudoArquivo = new StringBuilder();
+                                                int i = 0;
+                                                for (Inventario inventario : inventarios.values()) {
+                                                    String codReferencia = "";
+                                                    String codInterno = "";
 
-                                                      if (inventario.getCodReferencia().length() < 12) {
-                                                          codInterno = Util.insereNCaracteres(inventario.getCodReferencia(), "0", 6, true);
-                                                      } else {
-                                                          codReferencia = inventario.getCodReferencia();
-                                                      }
+                                                    if (inventario.getCodReferencia().length() < 12) {
+                                                        codInterno = Util.insereNCaracteres(inventario.getCodReferencia(), "0", 6, true);
+                                                    } else {
+                                                        codReferencia = inventario.getCodReferencia();
+                                                    }
 
-                                                      Date date = new Date(inventario.getDataHoraMovimentacao());
-                                                      String data = Util.converteData(date);
-                                                      String hora = Util.converteHoraMinuto(date);
-                                                      String saldo = String.valueOf(Util.converteInteiro(inventario.getSaldo()));
+                                                    Date date = new Date(inventario.getDataHoraMovimentacao());
+                                                    String data = Util.converteData(date);
+                                                    String hora = Util.converteHoraMinuto(date);
+                                                    String saldo = String.valueOf(Util.converteInteiro(inventario.getSaldo()));
 
-                                                      //String codReferencia = Util.insereNCaracteres(inventario.getCodReferencia(), "0", 13, true);
-                                                      //String avariados = Util.insereZeros(inventario.getAvariados(), 7, 5).replaceAll("\\.", "");
+                                                    //String codReferencia = Util.insereNCaracteres(inventario.getCodReferencia(), "0", 13, true);
+                                                    //String avariados = Util.insereZeros(inventario.getAvariados(), 7, 5).replaceAll("\\.", "");
 
-                                                      String linha =
-                                                              data + ',' +
-                                                              hora + ',' +
-                                                              codReferencia + ',' +
-                                                              (saldo.equals("0") ? "" : saldo) + ',' +
-                                                              codInterno;
+                                                    String linha =
+                                                            data + ',' +
+                                                                    hora + ',' +
+                                                                    codReferencia + ',' +
+                                                                    (saldo.equals("0") ? "" : saldo) + ',' +
+                                                                    codInterno;
 
-                                                      conteudoArquivo.append(linha);
-                                                      i++;
+                                                    conteudoArquivo.append(linha);
+                                                    i++;
 
-                                                      if (i < inventarios.size()) {
-                                                          conteudoArquivo.append("\n");
-                                                      }
+                                                    if (i < inventarios.size()) {
+                                                        conteudoArquivo.append("\n");
+                                                    }
 
-                                                      handler.post(() -> progressDialog.incrementProgressBy(1));
-                                                  }
+                                                    handler.post(() -> progressDialog.incrementProgressBy(1));
+                                                }
 
-                                                  try {
-                                                      exportaArquivo(fileExt, conteudoArquivo.toString());
-                                                      Util.finalizarProgressDialog(handler, progressDialog);
-                                                  } catch (IOException ex) {
-                                                      Util.finalizarProgressDialog(handler, progressDialog);
+                                                try {
+                                                    exportaArquivo(fileExt, conteudoArquivo.toString());
+                                                    Util.finalizarProgressDialog(handler, progressDialog);
+                                                } catch (IOException ex) {
+                                                    Util.finalizarProgressDialog(handler, progressDialog);
 
-                                                      Util.AlertaInfo(ProdutoMenuActivity.this,
-                                                              "EXPORTAR ARQUIVO",
-                                                              "Falha ao exportarProdutos o arquivo.");
-                                                  }
-                                              } else {
-                                                  Util.finalizarProgressDialog(handler, progressDialog);
+                                                    Util.AlertaInfo(ProdutoMenuActivity.this,
+                                                            "EXPORTAR ARQUIVO",
+                                                            "Falha ao exportarProdutos o arquivo.");
+                                                }
+                                            } else {
+                                                Util.finalizarProgressDialog(handler, progressDialog);
 
-                                                  Util.AlertaInfo(ProdutoMenuActivity.this,
-                                                          "EXPORTAR ARQUIVO",
-                                                          "Não há movimentações registradas, por isso não foi gerado arquivo.");
-                                              }
-                                          }
+                                                Util.AlertaInfo(ProdutoMenuActivity.this,
+                                                        "EXPORTAR ARQUIVO",
+                                                        "Não há movimentações registradas, por isso não foi gerado arquivo.");
+                                            }
+                                        }
 
-                                          @Override
-                                          public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                                          }
-                                      });
-                         } else {
-                             Util.finalizarProgressDialog(handler, progressDialog);
+                                        }
+                                    });
+                        } else {
+                            Util.finalizarProgressDialog(handler, progressDialog);
 
-                             Util.AlertaInfo(ProdutoMenuActivity.this,
-                                                "EXPORTAR ARQUIVO",
-                                            "Não há produtos registrados, por isso não foi gerado arquivo.");
-                         }
-                     }
+                            Util.AlertaInfo(ProdutoMenuActivity.this,
+                                    "EXPORTAR ARQUIVO",
+                                    "Não há produtos registrados, por isso não foi gerado arquivo.");
+                        }
+                    }
 
-                     @Override
-                     public void onCancelled(@NonNull DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                     }
-                 });
+                    }
+                });
     }
 
     @Override
@@ -301,14 +323,14 @@ public class ProdutoMenuActivity extends AppCompatActivity {
         if (requestCode == TipoRetornoIntent.FILE_SEARCH.ordinal()) {
             if (resultCode == RESULT_OK) {
                 List<String> docPaths = new ArrayList<>(Objects.requireNonNull(data).getStringArrayListExtra(FilePickerConst.KEY_SELECTED_DOCS));
-                for (String path: docPaths) {
+                for (String path : docPaths) {
                     List<String> linhas = Util.readFile(path);
 
                     AlertDialog.Builder alert = new AlertDialog.Builder(ProdutoMenuActivity.this);
                     alert.setTitle("DESEJA INSERIR OS DADOS?");
                     alert.setMessage("Deseja realmente inserir os seguintes dados?\n" +
-                                     "Caminho: " + path + "\n" +
-                                     "Dados:\n" + linhas.toString());
+                            "Caminho: " + path + "\n" +
+                            "Dados:\n" + linhas.toString());
                     alert.setCancelable(true);
                     alert.setPositiveButton("Sim", (dialog, which) -> {
                         DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
@@ -320,7 +342,7 @@ public class ProdutoMenuActivity extends AppCompatActivity {
 
                         handler.post(() -> inicializaProgressDialog("IMPORTAÇÃO", "Importando produtos..."));
 
-                        for (String linha: linhas) {
+                        for (String linha : linhas) {
                             Produto produto = new Produto();
                             String[] line = linha.split(";");
                             if (line.length >= 2) {
@@ -331,15 +353,15 @@ public class ProdutoMenuActivity extends AppCompatActivity {
                             }
 
                             reference.child("empresa_produtos")
-                                     .child(empresa.getId())
-                                     .push()
-                                     .setValue(produto)
-                                     .addOnCompleteListener(task -> {
+                                    .child(empresa.getId())
+                                    .push()
+                                    .setValue(produto)
+                                    .addOnCompleteListener(task -> {
                                         if (!task.isSuccessful()) {
                                             qtdeErros[0]++;
                                             String erro = "Erro " + qtdeErros[0] + ": " +
-                                                          "\tCód. Ref.: " + produto.getCodReferencia() + "\n" +
-                                                          "\tDescrição: " + produto.getDescricao();
+                                                    "\tCód. Ref.: " + produto.getCodReferencia() + "\n" +
+                                                    "\tDescrição: " + produto.getDescricao();
 
                                             builder.append(erro);
                                         }
@@ -353,7 +375,7 @@ public class ProdutoMenuActivity extends AppCompatActivity {
                                                 Util.AlertaInfo(ProdutoMenuActivity.this, "IMPORTAÇÃO", (qtdeErros[0] == 0 ? "Produtos importados com sucesso." : "Erro ao importas or produtos:\n\n" + builder.toString()));
                                             });
                                         }
-                                     });
+                                    });
                         }
                     });
                     alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
@@ -363,11 +385,6 @@ public class ProdutoMenuActivity extends AppCompatActivity {
         }
 
         super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    public void onOpenFragmentClicked(View view) {
-        Intent intent = new Intent(this, FragmentActivity.class);
-        startActivity(intent);
     }
 
     private void inicializaProgressDialog(String title, String message) {

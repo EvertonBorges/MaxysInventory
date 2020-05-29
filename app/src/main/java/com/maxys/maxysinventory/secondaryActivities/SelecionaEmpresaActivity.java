@@ -2,12 +2,17 @@ package com.maxys.maxysinventory.secondaryActivities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -58,6 +63,14 @@ public class SelecionaEmpresaActivity extends AppCompatActivity {
         adapter = new EmpresaAdapter(SelecionaEmpresaActivity.this, empresas);
         lvEmpresas.setAdapter(adapter);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+
+        toolbar.setTitle(this.getString(R.string.txtSelecionarEmpresa));
+        toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         preferencias = PreferenciasStatic.getInstance();
         String idUsuario = preferencias.getIdUsuarioLogado();
         Usuario usuario = preferencias.getUsuario();
@@ -106,6 +119,28 @@ public class SelecionaEmpresaActivity extends AppCompatActivity {
             Intent it = new Intent(SelecionaEmpresaActivity.this, EmpresaActivity.class);
             startActivity(it);
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+
+        final MenuItem item = menu.findItem(R.id.item_sair);
+        item.setVisible(false);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private void abrirProximaTela(Empresa empresa) {

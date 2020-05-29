@@ -37,6 +37,7 @@
     <string name="txtManageEmpresa">Empresa</string>
     <string name="txtManageProdutos">Produtos</string>
     <string name="txtManageInventario">Inventário</string>
+    <string name="txtMovimentacoes">Movimentações</string>
     <string name="title_activity_seleciona_empresa">SelecionaEmpresaActivity</string>
     <string name="txtSelecionarEmpresa">Selecione a empresa</string>
     <string name="txtExportarProduto">Exportar Produtos</string>
@@ -47,4 +48,7 @@
     <string name="title_activity_teste">TesteActivity</string>
     <string name="txtManagePermissoesGerais">Permissões</string>
     <string name="text_pesquisar">Pesquisar</string>
+
+    <string name="menu_config">Configurações</string>
+    <string name="menu_logout">Sair</string>
 </resources>

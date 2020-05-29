@@ -14,23 +14,24 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_launch_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/ic_launch_logo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".secondaryActivities.MovimentacoesActivity"></activity>
+
+        <activity android:name=".secondaryActivities.MovimentacoesActivity" />
         <activity android:name=".secondaryActivities.UsuarioActivity" />
         <activity android:name=".secondaryActivities.PermissaoActivity" />
         <activity android:name=".secondaryActivities.ManageProdutoActivity" />
         <activity android:name=".secondaryActivities.ProdutoMenuActivity" />
         <activity android:name=".secondaryActivities.SelecionaEmpresaActivity" />
         <activity android:name=".PrincipalActivity" />
-        <activity android:name=".secondaryActivities.EmpresaActivity" />
+        <activity android:name=".secondaryActivities.EmpresaActivity"/>
         <activity android:name=".secondaryActivities.CreateAccountActivity" />
         <activity
             android:name=".secondaryActivities.LoginActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -39,10 +40,10 @@
         </activity>
         <activity
             android:name=".secondaryActivities.BarCodeActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="fullSensor" />
         <activity
             android:name=".secondaryActivities.InventarioActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="fullSensor" />
     </application>
 
 </manifest>

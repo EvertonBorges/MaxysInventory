@@ -1,10 +1,11 @@
 package com.maxys.maxysinventory.util;
 
-import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Handler;
+
+import androidx.appcompat.app.AlertDialog;
 
 import com.maxys.maxysinventory.R;
 import com.maxys.maxysinventory.model.LogAcoes;
@@ -17,17 +18,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import androidx.appcompat.app.AlertDialog;
+import java.util.Locale;
 
 public class Util {
 
-    @SuppressLint("SimpleDateFormat")
-    private static final SimpleDateFormat formatadorData = new SimpleDateFormat("dd/MM/yyyy");
-    @SuppressLint("SimpleDateFormat")
-    private static final SimpleDateFormat formatadorHoraMinuto = new SimpleDateFormat("HH:mm");
-    @SuppressLint("SimpleDateFormat")
-    private static final SimpleDateFormat formatadorHoraCompleta = new SimpleDateFormat("HH:mm:ss");
+    public static final Locale BRAZIL_LOCALE = new Locale("pt", "br");
+
+    private static final SimpleDateFormat formatadorData = new SimpleDateFormat("dd/MM/yyyy", BRAZIL_LOCALE);
+    private static final SimpleDateFormat formatadorHoraMinuto = new SimpleDateFormat("HH:mm", BRAZIL_LOCALE);
+    private static final SimpleDateFormat formatadorHoraCompleta = new SimpleDateFormat("HH:mm:ss", BRAZIL_LOCALE);
 
     public static ProgressDialog inicializaProgressDialog(Context context, String title, String message) {
         ProgressDialog progressDialog = new ProgressDialog(context);
@@ -54,12 +53,12 @@ public class Util {
 
     public static AlertDialog.Builder AlertaInfo(Context context, String title, String message, DialogInterface.OnClickListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context)
-                                                     .setTitle(title)
-                                                     .setMessage(message)
-                                                     .setCancelable(true)
-                                                     //.setView()
-                                                     //.setIcon()
-                                                     .setPositiveButton("OK", listener != null ? listener : (dialog, which) -> dialog.dismiss());
+                .setTitle(title)
+                .setMessage(message)
+                .setCancelable(true)
+                //.setView()
+                //.setIcon()
+                .setPositiveButton("OK", listener != null ? listener : (dialog, which) -> dialog.dismiss());
         builder.show();
 
         return builder;
@@ -71,21 +70,21 @@ public class Util {
 
     public static AlertDialog.Builder Alerta(Context context, String title, String message, DialogInterface.OnClickListener listener) {
         return new AlertDialog.Builder(context)
-                              .setTitle(title)
-                              .setMessage(message)
-                              .setCancelable(true)
-                              //.setView()
-                              //.setIcon()
-                              .setPositiveButton("OK", listener != null ? listener : (dialog, which) -> dialog.dismiss());
+                .setTitle(title)
+                .setMessage(message)
+                .setCancelable(true)
+                //.setView()
+                //.setIcon()
+                .setPositiveButton("OK", listener != null ? listener : (dialog, which) -> dialog.dismiss());
     }
 
-    public static List<String> readFile (String path){
+    public static List<String> readFile(String path) {
         List<String> linhas = new ArrayList<>();
         try {
             FileReader fileReader = new FileReader(path);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String linha;
-            while((linha = bufferedReader.readLine()) != null){
+            while ((linha = bufferedReader.readLine()) != null) {
                 linhas.add(linha);
             }
             fileReader.close();

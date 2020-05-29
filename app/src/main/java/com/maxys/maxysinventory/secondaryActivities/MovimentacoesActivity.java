@@ -3,9 +3,13 @@ package com.maxys.maxysinventory.secondaryActivities;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.ListView;
 
 import com.google.firebase.database.DataSnapshot;
@@ -36,6 +40,7 @@ public class MovimentacoesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_movimentacoes);
 
         Intent intent = getIntent();
+
         String idProduto = Objects.requireNonNull(intent.getExtras()).getString("idProduto");
         String codReferencia = Objects.requireNonNull(intent.getExtras()).getString("codReferencia");
         String descricao = Objects.requireNonNull(intent.getExtras()).getString("descricao");
@@ -50,6 +55,14 @@ public class MovimentacoesActivity extends AppCompatActivity {
         ListView listView = findViewById(R.id.lv_movimentacoes);
         adapter = new MovimentacaoAdapter(MovimentacoesActivity.this, movimentacoes);
         listView.setAdapter(adapter);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+
+        toolbar.setTitle(this.getString(R.string.txtMovimentacoes));
+        toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         query = ConfiguracaoFirebase.getFirebase()
                                     .child("empresa_movimentacoes")
@@ -80,6 +93,28 @@ public class MovimentacoesActivity extends AppCompatActivity {
 
             }
         };
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+
+        final MenuItem item = menu.findItem(R.id.item_sair);
+        item.setVisible(false);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
