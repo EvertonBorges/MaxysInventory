@@ -15,7 +15,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.appcompat.widget.Toolbar;
 
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
@@ -91,6 +95,14 @@ public class ManageProdutoActivity extends AppCompatActivity {
         ImageButton btnSalvar = findViewById(R.id.btn_manage_produto_salvar);
         ImageButton btnPesquisa = findViewById(R.id.ib_manage_produto_pesquisa);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+
+        toolbar.setTitle(this.getString(R.string.txtManageProdutos));
+        toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         ListView lvProdutos = findViewById(R.id.lv_manage_produto);
         List<String> permissoes = new ArrayList<>();
         for (Permissao permissao: preferencias.getContribuidor().getPermissoes()) {
@@ -147,8 +159,6 @@ public class ManageProdutoActivity extends AppCompatActivity {
         };
 
         btnBarcode.setOnClickListener(v -> {
-
-
             //if (permitido) {
                 Intent intent = new Intent(ManageProdutoActivity.this, BarCodeActivity.class);
                 startActivityForResult(intent, TipoRetornoIntent.BARCODE_SCAN.ordinal());
@@ -163,9 +173,7 @@ public class ManageProdutoActivity extends AppCompatActivity {
             */
         });
 
-        btnLimpar.setOnClickListener(v -> {
-            limparCampos();
-        });
+        btnLimpar.setOnClickListener(v -> limparCampos());
 
         btnSalvar.setOnClickListener(v -> {
             Produto produto = new Produto();
@@ -440,6 +448,28 @@ public class ManageProdutoActivity extends AppCompatActivity {
                 query.addValueEventListener(valueEventListener);
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+
+        final MenuItem item = menu.findItem(R.id.item_sair);
+        item.setVisible(false);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

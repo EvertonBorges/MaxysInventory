@@ -1,7 +1,6 @@
 package com.maxys.maxysinventory.secondaryActivities;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -38,7 +37,6 @@ import com.maxys.maxysinventory.util.Util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -237,8 +235,6 @@ public class ProdutoMenuActivity extends AppCompatActivity {
                                                     } else {
                                                         inventario.addSaldo(movimentacao.getQtde());
                                                     }
-
-
                                                 }
 
                                                 StringBuilder conteudoArquivo = new StringBuilder();
@@ -322,64 +318,71 @@ public class ProdutoMenuActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == TipoRetornoIntent.FILE_SEARCH.ordinal()) {
             if (resultCode == RESULT_OK) {
-                List<String> docPaths = new ArrayList<>(Objects.requireNonNull(data).getStringArrayListExtra(FilePickerConst.KEY_SELECTED_DOCS));
-                for (String path : docPaths) {
-                    List<String> linhas = Util.readFile(path);
+                final ArrayList<String> filesToImport =
+                        Objects.requireNonNull(data)
+                                .getStringArrayListExtra(FilePickerConst.KEY_SELECTED_DOCS);
 
-                    AlertDialog.Builder alert = new AlertDialog.Builder(ProdutoMenuActivity.this);
-                    alert.setTitle("DESEJA INSERIR OS DADOS?");
-                    alert.setMessage("Deseja realmente inserir os seguintes dados?\n" +
-                            "Caminho: " + path + "\n" +
-                            "Dados:\n" + linhas.toString());
-                    alert.setCancelable(true);
-                    alert.setPositiveButton("Sim", (dialog, which) -> {
-                        DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
+                if (filesToImport != null && !filesToImport.isEmpty()) {
+                    for (String path : filesToImport) {
+                        List<String> linhas = Util.readFile(path);
 
-                        StringBuilder builder = new StringBuilder();
-                        final Integer[] qtdeErros = {0};
+                        AlertDialog.Builder alert = new AlertDialog.Builder(ProdutoMenuActivity.this);
+                        alert.setTitle("DESEJA INSERIR OS DADOS?");
+                        alert.setMessage(
+                                "Deseja realmente inserir os seguintes dados?\n" +
+                                "Caminho: " + path + "\n" +
+                                "Dados:\n" + linhas.toString()
+                        );
+                        alert.setCancelable(true);
+                        alert.setPositiveButton("Sim", (dialog, which) -> {
+                            DatabaseReference reference = ConfiguracaoFirebase.getFirebase();
 
-                        Handler handler = new Handler();
+                            StringBuilder builder = new StringBuilder();
+                            final Integer[] qtdeErros = {0};
 
-                        handler.post(() -> inicializaProgressDialog("IMPORTAÇÃO", "Importando produtos..."));
+                            Handler handler = new Handler();
 
-                        for (String linha : linhas) {
-                            Produto produto = new Produto();
-                            String[] line = linha.split(";");
-                            if (line.length >= 2) {
-                                produto.setCodReferencia(line[0].trim());
-                                produto.setDescricao(line[1].trim());
-                            } else if (line.length == 1) {
-                                produto.setCodReferencia(line[0].trim());
+                            handler.post(() -> inicializaProgressDialog("IMPORTAÇÃO", "Importando produtos..."));
+
+                            for (String linha : linhas) {
+                                Produto produto = new Produto();
+                                String[] line = linha.split(";");
+                                if (line.length >= 2) {
+                                    produto.setCodReferencia(line[0].trim());
+                                    produto.setDescricao(line[1].trim());
+                                } else if (line.length == 1) {
+                                    produto.setCodReferencia(line[0].trim());
+                                }
+
+                                reference.child("empresa_produtos")
+                                        .child(empresa.getId())
+                                        .push()
+                                        .setValue(produto)
+                                        .addOnCompleteListener(task -> {
+                                            if (!task.isSuccessful()) {
+                                                qtdeErros[0]++;
+                                                String erro = "Erro " + qtdeErros[0] + ": " +
+                                                        "\tCód. Ref.: " + produto.getCodReferencia() + "\n" +
+                                                        "\tDescrição: " + produto.getDescricao();
+
+                                                builder.append(erro);
+                                            }
+
+                                            if (linha.equals(linhas.get(linhas.size() - 1))) { // última linha
+                                                handler.post(() -> {
+                                                    if (progressDialog.isShowing()) {
+                                                        progressDialog.dismiss();
+                                                    }
+
+                                                    Util.AlertaInfo(ProdutoMenuActivity.this, "IMPORTAÇÃO", (qtdeErros[0] == 0 ? "Produtos importados com sucesso." : "Erro ao importas or produtos:\n\n" + builder.toString()));
+                                                });
+                                            }
+                                        });
                             }
-
-                            reference.child("empresa_produtos")
-                                    .child(empresa.getId())
-                                    .push()
-                                    .setValue(produto)
-                                    .addOnCompleteListener(task -> {
-                                        if (!task.isSuccessful()) {
-                                            qtdeErros[0]++;
-                                            String erro = "Erro " + qtdeErros[0] + ": " +
-                                                    "\tCód. Ref.: " + produto.getCodReferencia() + "\n" +
-                                                    "\tDescrição: " + produto.getDescricao();
-
-                                            builder.append(erro);
-                                        }
-
-                                        if (linha.equals(linhas.get(linhas.size() - 1))) { // última linha
-                                            handler.post(() -> {
-                                                if (progressDialog.isShowing()) {
-                                                    progressDialog.dismiss();
-                                                }
-
-                                                Util.AlertaInfo(ProdutoMenuActivity.this, "IMPORTAÇÃO", (qtdeErros[0] == 0 ? "Produtos importados com sucesso." : "Erro ao importas or produtos:\n\n" + builder.toString()));
-                                            });
-                                        }
-                                    });
-                        }
-                    });
-                    alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
-                    alert.show();
+                        });
+                        alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
+                        alert.show();
+                    }
                 }
             }
         }
