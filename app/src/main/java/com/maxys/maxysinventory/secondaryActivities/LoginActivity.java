@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -37,6 +38,8 @@ import com.maxys.maxysinventory.util.Util;
 import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
+
+    private FirebaseAnalytics mFirebaseAnalytics;
 
     private AppCompatEditText edtLogin;
     private AppCompatEditText edtSenha;
@@ -70,6 +73,8 @@ public class LoginActivity extends AppCompatActivity {
 
         textLayoutLogin = findViewById(R.id.textLayoutCreateLogin);
         textLayoutSenha = findViewById(R.id.textLayoutCreateSenha);
+
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         PreferenciasShared preferencias = new PreferenciasShared(LoginActivity.this);
         edtLogin.setText(Base64Custom.decodificarBase64(preferencias.getLogin()));
