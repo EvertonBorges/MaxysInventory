@@ -4,12 +4,16 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import androidx.annotation.NonNull;
+
+import com.crashlytics.android.Crashlytics;
 import com.google.android.material.textfield.TextInputLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatEditText;
+
+import io.fabric.sdk.android.Fabric;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
@@ -17,7 +21,6 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -39,8 +42,6 @@ import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private FirebaseAnalytics mFirebaseAnalytics;
-
     private AppCompatEditText edtLogin;
     private AppCompatEditText edtSenha;
     private AppCompatButton btnEntrar;
@@ -59,6 +60,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        Fabric.with(this, new Crashlytics());
+
         solicitarPermissoes();
 
         firebaseAuth = ConfiguracaoFirebase.getFirebaseAuth();
@@ -73,8 +76,6 @@ public class LoginActivity extends AppCompatActivity {
 
         textLayoutLogin = findViewById(R.id.textLayoutCreateLogin);
         textLayoutSenha = findViewById(R.id.textLayoutCreateSenha);
-
-        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         PreferenciasShared preferencias = new PreferenciasShared(LoginActivity.this);
         edtLogin.setText(Base64Custom.decodificarBase64(preferencias.getLogin()));
@@ -129,6 +130,8 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(this, CreateAccountActivity.class);
             startActivity(intent);
         });
+
+
     }
 
     private void ValidarLogin(Handler handler) {
