@@ -18,6 +18,7 @@ import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.AppCompatEditText;
@@ -488,9 +489,26 @@ public class InventarioActivity extends AppCompatActivity implements EasyPermiss
                                         progressDialog.dismiss();
                                     }
 
-                                    Util.AlertaInfo(InventarioActivity.this, "PRODUTO NÃO ENCONTRADO", "Produto " + codReferencia + " não encontrado.");
+                                    Produto produto = new Produto();
+                                    produto.setCodReferencia(codReferencia);
+                                    produto.setDescricao("Produto #" + codReferencia);
 
-                                    limparCampos();
+                                    AlertDialog.Builder alert = Util.Alerta(InventarioActivity.this, "CADASTRAR PRODUTO", "Deseja cadastrar o produto?");
+                                    alert.setCancelable(false);
+                                    alert.setPositiveButton("Sim", (dialog, which) -> {
+                                        reference.child("empresa_produtos")
+                                                .child(empresa.getId())
+                                                .push().setValue(produto).addOnCompleteListener(command -> {
+                                            if (command.isSuccessful()) {
+                                                Util.salvarLog(empresa.getId(), idUsuarioLogado, "Produto (" + produto.getCodReferencia() + ") cadastrado com sucesso.");
+                                                realizarEnvio();
+                                            } else {
+                                                Util.AlertaInfo(InventarioActivity.this, "ERRO PRODUTO", "Erro ao cadastrar o produto.");
+                                            }
+                                        });
+                                    });
+                                    alert.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
+                                    alert.show();
                                 });
                             }
                         }
